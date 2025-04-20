@@ -1,35 +1,59 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { Flex, Spin, Typography } from 'antd';
+import api from './utils/api';
+import { CheckCircleOutlined } from '@ant-design/icons';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [success, setSuccess] = React.useState<boolean>(false);
 
+  React.useEffect(() => {
+    if (success) {
+      console.log('Detected backend');
+      window.location.href = '/';
+    } else {
+      const timeout = setInterval(async () => {
+        try {
+          const isAlive = await api.isAlive();
+          setSuccess(isAlive);
+        } catch {
+          console.error('Failed to detect backend.');
+        }
+      }, 3000);
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [success]);
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Flex
+      align='center'
+      vertical
+      justify='center'
+      style={{ height: '100vh', maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
+      <Typography.Title level={2}>Unsupported infrastructure</Typography.Title>
+      <Typography.Paragraph>
+        nurl requires a backend to function properly. Please serve the backend along with the frontend.
+      </Typography.Paragraph>
+      <Typography.Paragraph>
+        <Typography.Link>See troubleshooting</Typography.Link> for more information.
+      </Typography.Paragraph>
+      <Flex gap='1rem' justify='center'>
+        {success ? (
+          <>
+            <Typography.Text type='success'>
+              <CheckCircleOutlined />
+            </Typography.Text>
+            <Typography.Paragraph type='success'>Detected backend. Redirecting...</Typography.Paragraph>
+          </>
+        ) : (
+          <>
+            <Spin />
+            <Typography.Paragraph type='secondary'>Waiting for backend...</Typography.Paragraph>
+          </>
+        )}
+      </Flex>
+    </Flex>
+  );
+};
 
-export default App
+export default App;

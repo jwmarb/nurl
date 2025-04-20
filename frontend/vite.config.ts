@@ -1,7 +1,12 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig, loadEnv } from 'vite';
+import { reactRouter } from '@react-router/dev/vite';
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-})
+export default defineConfig(({ mode }) => {
+  return {
+    plugins: [reactRouter()],
+    define: {
+      'process.env': loadEnv(mode, process.cwd(), ''),
+    },
+  };
+});
