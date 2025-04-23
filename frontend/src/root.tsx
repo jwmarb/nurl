@@ -1,4 +1,6 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
+import './index.css';
+import Providers from '$/providers';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,7 +13,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <Providers>{children}</Providers>
         <ScrollRestoration />
         <Scripts />
       </body>

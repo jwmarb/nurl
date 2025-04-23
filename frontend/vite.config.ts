@@ -8,5 +8,10 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env': loadEnv(mode, process.cwd(), ''),
     },
+    resolve: {
+      alias: {
+        $: '/src',
+      },
+    },
   };
 });
