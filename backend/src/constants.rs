@@ -18,3 +18,6 @@ pub(crate) static FRONTEND_DIST: Lazy<PathBuf> = Lazy::new(|| {
 });
 
 pub(crate) static PRODUCTION_ENV: &str = "production";
+
+pub(crate) static POSTGRESQL_URL: Lazy<&str> = 
+    Lazy::new(|| option_env!("POSTGRESQL_URL").unwrap_or("postgresql://postgres:postgres@localhost:5432/postgres"));
