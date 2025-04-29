@@ -16,27 +16,32 @@ export default function Auth() {
     <div className='screen'>
       <Typography.Title level={2}>Sign in to your account</Typography.Title>
       <Card>
-        <Form name='login' initialValues={{ remember: true }} className='form' onFinish={handleOnSubmit}>
-          <Form.Item
-            name='username'
-            label='Username'
-            layout='vertical'
-            rules={[{ required: true, message: 'Please input your Username!' }]}>
-            <Input prefix={<UserOutlined />} placeholder='Username' />
-          </Form.Item>
-          <Form.Item
-            label='Password'
-            layout='vertical'
-            name='password'
-            rules={[{ required: true, message: 'Please input your Password!' }]}>
-            <Input prefix={<LockOutlined />} type='password' placeholder='Password' />
-          </Form.Item>
-          <Form.Item name='remember' valuePropName='checked' noStyle>
+        <Form
+          name='login'
+          layout='vertical'
+          initialValues={{ remember: true }}
+          className='form'
+          onFinish={handleOnSubmit}>
+          <div>
+            <Form.Item
+              name='username'
+              label='Username'
+              rules={[{ required: true, message: 'Please input your Username!' }]}>
+              <Input prefix={<UserOutlined />} placeholder='Username' />
+            </Form.Item>
+            <Form.Item
+              label='Password'
+              name='password'
+              rules={[{ required: true, message: 'Please input your Password!' }]}>
+              <Input prefix={<LockOutlined />} type='password' placeholder='Password' />
+            </Form.Item>
+          </div>
+          <Form.Item name='remember' valuePropName='checked' label={null} layout='vertical' noStyle>
             <Checkbox>Remember me</Checkbox>
           </Form.Item>
           <Form.Item>
             <div className='register'>
-              <Button block type='primary' htmlType='submit'>
+              <Button block type='primary' htmlType='submit' className='register-label'>
                 Log in
               </Button>
               <span className='register-label'>
