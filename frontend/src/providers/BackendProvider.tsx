@@ -1,26 +1,28 @@
 import React from 'react';
 import { Flex, Spin, Typography } from 'antd';
 import api from '$/utils/api';
+import { useBackendStore } from '$/store/backend';
 
 export default function BackendProvider({ children }: React.PropsWithChildren) {
-  const [success, setSuccess] = React.useState<boolean>(true);
+  const { isAlive, setIsAlive } = useBackendStore();
 
   React.useEffect(() => {
+    api.isAlive().then(setIsAlive);
     const timeout = setInterval(async () => {
       try {
         const isAlive = await api.isAlive();
-        setSuccess(isAlive);
+        setIsAlive(isAlive);
       } catch {
         console.error('Failed to detect backend.');
-        setSuccess(false);
+        setIsAlive(false);
       }
     }, 3000);
     return () => {
       clearTimeout(timeout);
     };
-  }, []);
+  }, [setIsAlive]);
 
-  if (success) {
+  if (isAlive) {
     return <>{children}</>;
   }
 
@@ -38,7 +40,7 @@ export default function BackendProvider({ children }: React.PropsWithChildren) {
         <Typography.Link>See troubleshooting</Typography.Link> for more information.
       </Typography.Paragraph>
       <Flex gap='1rem' justify='center'>
-        {!success && (
+        {!isAlive && (
           <>
             <Spin />
             <Typography.Paragraph type='secondary'>Waiting for backend...</Typography.Paragraph>
