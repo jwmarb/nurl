@@ -4,7 +4,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./postgresql:/var/lib/postgresql/data/pgdata
+      - ./postgresql:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: postgres
   valkey:
