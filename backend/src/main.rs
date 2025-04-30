@@ -7,6 +7,11 @@ use constants::{FRONTEND_DIST, HOST, PORT};
 use dotenv::dotenv;
 use routes::health::health;
 use utils::is_production;
+use utils::connect_db;
+use utils::disconnect_db;
+
+// database stuff
+// use sqlx::postgres::PgPoolOptions;
 
 #[get("/")]
 async fn development() -> impl Responder {
@@ -21,6 +26,31 @@ async fn index() -> NamedFile {
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
+    // database stuff
+    // connecting to database
+    let pool = connect_db()
+    .await
+    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+
+    // queries to the database
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS users (
+            id UUID PRIMARY KEY,
+            username TEXT NOT NULL,
+            password TEXT NOT NULL
+        );
+        "#,
+    )
+    .execute(&pool)
+    .await
+    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+    
+    // disconnecting
+    disconnect_db(pool)
+    .await;
+
+    // server stuff
     let server = HttpServer::new(|| {
         let mut app = App::new().service(health);
 
@@ -51,6 +81,8 @@ async fn main() -> std::io::Result<()> {
     );
 
     server.run().await
+
+    
 }
 
 #[cfg(test)]
