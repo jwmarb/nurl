@@ -1,0 +1,55 @@
+.layout {
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+}
+
+.content {
+  padding: 24px;
+}
+
+.url-shortener-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.url-form-card {
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+}
+
+.url-history-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+}
+
+.url-form {
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .url-shortener-container {
+    padding: 0 16px;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.user-controls {
+  display: flex;
+  align-items: center;
+}
