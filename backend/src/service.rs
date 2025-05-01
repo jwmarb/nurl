@@ -1,4 +1,4 @@
-use crate::domain::{ShortenedUrl, ShortenError, User};
+use crate::structs::{ShortenedUrl, ShortenError, User};
 use chrono::{DateTime, Duration, Utc};
 use uuid::Uuid;
 
