@@ -1,15 +1,15 @@
 mod constants;
 mod routes;
+mod structs;
 mod utils;
 use actix_files::{Files, NamedFile};
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use constants::{FRONTEND_DIST, HOST, PORT};
 use dotenv::dotenv;
 use routes::health::health;
-use utils::is_production;
 use utils::connect_db;
 use utils::disconnect_db;
-
+use utils::is_production;
 // database stuff
 // use sqlx::postgres::PgPoolOptions;
 
@@ -29,8 +29,8 @@ async fn main() -> std::io::Result<()> {
     // database stuff
     // connecting to database
     let pool = connect_db()
-    .await
-    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+        .await
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
 
     // queries to the database
     sqlx::query(
@@ -45,10 +45,9 @@ async fn main() -> std::io::Result<()> {
     .execute(&pool)
     .await
     .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-    
+
     // disconnecting
-    disconnect_db(pool)
-    .await;
+    disconnect_db(pool).await;
 
     // server stuff
     let server = HttpServer::new(|| {
@@ -81,8 +80,6 @@ async fn main() -> std::io::Result<()> {
     );
 
     server.run().await
-
-    
 }
 
 #[cfg(test)]

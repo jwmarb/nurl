@@ -1,16 +1,16 @@
-use crate::constants::{ENVIRONMENT, PRODUCTION_ENV, POSTGRESQL_URL};
-use sqlx::{PgPool, postgres::PgPoolOptions};
+use crate::constants::{ENVIRONMENT, POSTGRESQL_URL, PRODUCTION_ENV};
+use sqlx::{postgres::PgPoolOptions, PgPool};
 
 #[inline]
 pub fn is_production() -> bool {
     *ENVIRONMENT == PRODUCTION_ENV
 }
 
-
 // connects to database
 pub async fn connect_db() -> Result<PgPool, sqlx::Error> {
     let pool = PgPoolOptions::new()
         .max_connections(5)
+        .acquire_timeout(std::time::Duration::from_secs(5))
         .connect(*POSTGRESQL_URL)
         .await?;
 
