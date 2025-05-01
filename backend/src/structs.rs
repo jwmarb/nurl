@@ -6,8 +6,7 @@ pub(crate) struct User {
     pub id: String,
     pub username: String,
 
-    // bcrypt hash password
-    pub password: String,
+    pub password: String, // bcrypt hash password
 }
 
 // The URL shortener model itself
