@@ -26,6 +26,8 @@ export default function AuthProvider(props: React.PropsWithChildren) {
   React.useEffect(() => {
     if (token == null) {
       navigate('/auth');
+    } else {
+      navigate('/');
     }
   }, [navigate, token]);
 
