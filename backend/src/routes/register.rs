@@ -1,33 +1,30 @@
 use actix_web::{post, web, HttpResponse, Responder};
-use sqlx::PgPool;
 use bcrypt::{hash, DEFAULT_COST};
-
 use serde::Deserialize;
+use sqlx::PgPool;
 
+use crate::structs::APIResponse;
 #[derive(Deserialize)]
 struct RegisterForm {
     username: String,
     password: String,
-    confirmPassword: String,
+    confirm_password: String,
 }
 
-
-/* 
 #[post("/api/register")]
-async fn register(req: web::) -> impl Responder {
-    HttpResponse::Ok().body("I'm healthy!")
-}
-    */
-
-
-async fn register_user(
-    form: web::Json<RegisterForm>,
-    pool: web::Data<PgPool>,
-) -> impl Responder {
+async fn register(form: web::Json<RegisterForm>, pool: web::Data<PgPool>) -> impl Responder {
     let form = form.into_inner();
 
-    if form.password != form.confirmPassword {
-        return HttpResponse::BadRequest().body("Passwords do not match");
+    if form.username.is_empty() || form.password.is_empty() {
+        return HttpResponse::BadRequest().json(APIResponse::error_message(
+            "Username and password cannot be empty".to_string(),
+        ));
+    }
+
+    if form.password != form.confirm_password {
+        return HttpResponse::BadRequest().json(APIResponse::error_message(
+            "Passwords do not match".to_string(),
+        ));
     }
 
     let exists: (i64,) = match sqlx::query_as("SELECT COUNT(*) FROM users WHERE username = $1")
@@ -36,26 +33,38 @@ async fn register_user(
         .await
     {
         Ok(row) => row,
-        Err(_) => return HttpResponse::InternalServerError().finish(),
+        Err(_) => {
+            return HttpResponse::InternalServerError().json(APIResponse::error_message(
+                "Could not check if username exists".to_string(),
+            ))
+        }
     };
 
     if exists.0 > 0 {
-        return HttpResponse::BadRequest().body("Username already exists");
+        return HttpResponse::BadRequest().json(APIResponse::error_message(
+            "Username already exists".to_string(),
+        ));
     }
 
     let hashed = match hash(&form.password, DEFAULT_COST) {
         Ok(h) => h,
-        Err(_) => return HttpResponse::InternalServerError().finish(),
+        Err(_) => {
+            return HttpResponse::InternalServerError().json(APIResponse::error_message(
+                "Could not hash password".to_string(),
+            ))
+        }
     };
 
-    let result = sqlx::query("INSERT INTO users (username, password) VALUES ($1, $2)")
+    let result = sqlx::query("INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id")
         .bind(&form.username)
         .bind(&hashed)
-        .execute(pool.get_ref())
+        .fetch_one(pool.get_ref())
         .await;
 
     match result {
-        Ok(_) => HttpResponse::Ok().body("User created"),
-        Err(_) => HttpResponse::InternalServerError().finish(),
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(_) => HttpResponse::InternalServerError().json(APIResponse::error_message(
+            "Could not create user".to_string(),
+        )),
     }
 }

@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use serde::Serialize;
 
 // User model, holds their id + username + password
 #[derive(Debug, Clone)]
@@ -24,11 +25,30 @@ pub(crate) struct ShortenedUrl {
     pub redirects: u64, // use count
 }
 
-/// Errors
-#[derive(Debug)]
-pub(crate) enum ShortenError {
-    NotFound,
-    Unauthorized,
-    InvalidInput(String),
-    DatabaseError(String),
+#[derive(Serialize)]
+pub struct APIResponse {
+    pub error: Option<String>,
+    pub data: Option<serde_json::Value>,
+}
+
+impl APIResponse {
+    pub fn error_message(error: String) -> Self {
+        Self {
+            error: Some(error),
+            data: None,
+        }
+    }
+    pub fn error<T: Serialize>(error: String, data: Option<T>) -> Self {
+        Self {
+            error: Some(error),
+            data: data.map(|d| serde_json::to_value(d).expect("Failed to serialize data")),
+        }
+    }
+
+    pub fn data<T: Serialize>(data: T) -> Self {
+        Self {
+            error: None,
+            data: Some(serde_json::to_value(data).expect("Failed to serialize data")),
+        }
+    }
 }
