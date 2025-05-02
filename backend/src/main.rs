@@ -7,6 +7,7 @@ mod utils;
 use actix_files as fs;
 use actix_files::Files;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use actix_cors::Cors;
 use constants::{FRONTEND_DIST, HOST, PORT};
 use dotenv::dotenv;
 use middleware::ExtractUsernameJWT;
@@ -74,7 +75,14 @@ async fn main() -> std::io::Result<()> {
     let pool = init_db().await.map(|p| web::Data::new(p))?;
 
     let server = HttpServer::new(move || {
+        let cors = Cors::default()
+            .allow_any_origin()
+            .allow_any_method()
+            .allow_any_header()
+            .max_age(3600);
+
         let mut app = App::new()
+            .wrap(cors)
             .service(health)
             .service(register)
             .service(login)
