@@ -34,7 +34,7 @@ pub async fn create_or_update_url(
             // Generate a unique short URL using nanoid
             let mut short_url;
             loop {
-                short_url = nanoid!(5); // 5 characters should be enough for uniqueness
+                short_url = nanoid!(5); 
                 let exists: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM shortened_urls WHERE short_url = $1")
                     .bind(&short_url)
                     .fetch_one(pool)
