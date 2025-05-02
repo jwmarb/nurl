@@ -74,6 +74,31 @@ pub async fn login(form: web::Json<LoginForm>, db: web::Data<PgPool>) -> impl Re
     HttpResponse::Ok().json(APIResponse::data(TokenResponse { token: jwt }))
 }
 
+
+use actix_web::{
+    body::MessageBody,
+    dev::{ServiceRequest, ServiceResponse},
+    middleware::{from_fn, Next},
+    Error,
+    http::header,
+};
+
+async fn my_middleware(
+    mut req: ServiceRequest,
+    next: Next<impl MessageBody>,
+) -> Result<ServiceResponse<impl MessageBody>, Error> {
+    // Access the `Authorization` header
+    if let Some(auth_header) = req.headers().get(header::AUTHORIZATION) {
+        if let Ok(auth_str) = auth_header.to_str() {
+            println!("Authorization header: {}", auth_str);
+            // You can now use `auth_str` to validate/parse as needed
+        }
+    } else {
+        println!("No Authorization header found");
+    }
+    // Continue to the next middleware/handler
+    next.call(req).await
+}
 /*
 use bcrypt::{hash, verify};
 use jsonwebtoken::{encode, EncodingKey, Header};
