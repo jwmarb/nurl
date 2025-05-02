@@ -1,12 +1,20 @@
+use actix_web::{post, web, HttpResponse, Responder};
+use bcrypt::verify;
+use chrono::{Duration, Utc};
+use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use bcrypt::verify;
-use jsonwebtoken::{encode, EncodingKey, Header};
+
+use crate::{
+    constants::NURL_SECRET,
+    structs::{APIResponse, Claims, User},
+};
 
 #[derive(Deserialize)]
 pub struct LoginForm {
     pub username: String,
     pub password: String,
+    pub remember_me: bool,
 }
 
 #[derive(Serialize)]
@@ -14,47 +22,84 @@ pub struct TokenResponse {
     pub token: String,
 }
 
-#[derive(Serialize)]
-struct Claims {
-    pub username: String,
-    pub exp: usize,
-}
+#[post("/api/auth")]
+pub async fn login(form: web::Json<LoginForm>, db: web::Data<PgPool>) -> impl Responder {
+    let row = sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = $1")
+        .bind(&form.username)
+        .fetch_one(db.get_ref())
+        .await;
 
-pub async fn login_user(form: LoginForm, db: &PgPool) -> Result<TokenResponse, String> {
-    let user = sqlx::query!(
-        "SELECT password FROM users WHERE username = $1",
-        form.username
-    )
-    .fetch_optional(db)
-    .await
-    .map_err(|_| "DB error")?;
-
-    if let Some(record) = user {
-        let password_matches = verify(&form.password, &record.password)
-            .map_err(|_| "Bcrypt error")?;
-
-        if password_matches {
-            let claims = Claims {
-                username: form.username,
-                exp: chrono::Utc::now().timestamp() as usize + 3600,
-            };
-
-            let token = encode(
-                &Header::default(),
-                &claims,
-                &EncodingKey::from_secret("your-secret".as_ref()),
-            )
-            .map_err(|_| "JWT error")?;
-
-            return Ok(TokenResponse { token });
+    let user = match row {
+        Err(_) => {
+            println!("Could not find user \"{}\"", form.username);
+            return HttpResponse::UnprocessableEntity().json(APIResponse::error_message(
+                "Invalid username/password".to_string(),
+            ));
         }
+        Ok(u) => u,
+    };
+
+    let password_matches = match verify(&form.password, &user.password) {
+        Err(_) => {
+            return HttpResponse::InternalServerError().json(APIResponse::error_message(
+                "Could not verify password".to_string(),
+            ));
+        }
+        Ok(m) => m,
+    };
+
+    if !password_matches {
+        println!("Passwords do not match for user \"{}\"", form.username);
+        return HttpResponse::UnprocessableEntity().json(APIResponse::error_message(
+            "Invalid username/password".to_string(),
+        ));
     }
 
-    Err("Invalid username or password".to_string())
-}
-    
+    let mut expiration = Utc::now() + Duration::hours(1);
 
-/* 
+    if form.remember_me {
+        expiration = Utc::now() + Duration::days(30);
+    }
+
+    let jwt = encode(
+        &Header::default(),
+        &Claims {
+            username: form.username.clone(),
+            exp: expiration.timestamp() as usize,
+        },
+        &EncodingKey::from_secret((*NURL_SECRET).as_bytes()),
+    )
+    .unwrap();
+
+    HttpResponse::Ok().json(APIResponse::data(TokenResponse { token: jwt }))
+}
+
+
+use actix_web::{
+    body::MessageBody,
+    dev::{ServiceRequest, ServiceResponse},
+    middleware::{from_fn, Next},
+    Error,
+    http::header,
+};
+
+async fn my_middleware(
+    mut req: ServiceRequest,
+    next: Next<impl MessageBody>,
+) -> Result<ServiceResponse<impl MessageBody>, Error> {
+    // Access the `Authorization` header
+    if let Some(auth_header) = req.headers().get(header::AUTHORIZATION) {
+        if let Ok(auth_str) = auth_header.to_str() {
+            println!("Authorization header: {}", auth_str);
+            // You can now use `auth_str` to validate/parse as needed
+        }
+    } else {
+        println!("No Authorization header found");
+    }
+    // Continue to the next middleware/handler
+    next.call(req).await
+}
+/*
 use bcrypt::{hash, verify};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};

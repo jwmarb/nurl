@@ -1,3 +1,5 @@
+import { MessageInstance } from 'antd/es/message/interface';
+import React from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -18,3 +20,13 @@ export const useTheme = create<Theme>()(
     }
   )
 );
+
+export const MessageContext = React.createContext<MessageInstance | null>(null);
+
+export const useMessage = () => {
+  const notificationInstance = React.useContext(MessageContext);
+  if (!notificationInstance) {
+    throw new Error('useNotification must be used within a ThemeProvider');
+  }
+  return notificationInstance;
+};
