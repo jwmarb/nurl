@@ -10,5 +10,5 @@ type Params = {
   "/": {};
   "/auth": {};
   "/auth/register": {};
-  "/*?": {};
+  "/": {};
 };

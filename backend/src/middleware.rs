@@ -5,19 +5,12 @@ use actix_web::{
 };
 use futures::future::{ready, LocalBoxFuture, Ready};
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use serde::{Deserialize, Serialize};
 use std::{
     rc::Rc,
     task::{Context, Poll},
 };
 
-use crate::constants::NURL_SECRET;
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-    pub username: String,
-    pub exp: usize,
-}
+use crate::{constants::NURL_SECRET, structs::Claims};
 
 pub struct ExtractUsernameJWT;
 

@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 // User model, holds their id + username + password
@@ -10,7 +10,7 @@ pub(crate) struct User {
     pub password: String, // bcrypt hash password
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct Claims {
     pub username: String,
     pub exp: usize,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import {
   Layout,
@@ -28,11 +29,27 @@ import './App.css';
 import { useAuthStore } from '$/store/auth';
 import { useMessage } from '$/providers/theme/theme';
 import dayjs from 'dayjs';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import api, { UpdateURLRequest } from '$/utils/api';
+import { BACKEND_URL } from '$/utils/constants';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 const { Option } = Select;
 
+// API response type from GET /api/shorten
+type ShortenedUrlResponse = {
+  id: string;
+  original_url: string;
+  short_url: string;
+  expiry_date?: string;
+  created_at: string;
+  updated_at: string;
+  owner: string;
+  redirects: number;
+};
+
+// Front-end representation of a URL item
 type UrlItem = {
   id: string;
   original: string;
@@ -43,19 +60,153 @@ type UrlItem = {
   clicks: number;
 };
 
+// Type for POST/PUT request to /api/shorten
+type CreateUpdateUrlData = {
+  original_url: string;
+  custom_path?: string;
+  expiration?: number;
+};
+
 export default function App() {
-  const FRONTEND_URL = `${location.protocol}//${location.host}`;
+  const FRONTEND_URL = typeof location === 'undefined' ? BACKEND_URL : 'http://localhost:8080';
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
-  const [shortenedUrls, setShortenedUrls] = React.useState<UrlItem[]>([]);
   const [isEditModalVisible, setIsEditModalVisible] = React.useState(false);
   const setToken = useAuthStore((s) => s.setToken);
+  const token = useAuthStore((s) => s.token);
   const [editingUrl, setEditingUrl] = React.useState<UrlItem | null>(null);
   const message = useMessage();
   const [expirationType, setExpirationType] = React.useState<'never' | 'date' | 'duration'>('never');
   const [editExpirationType, setEditExpirationType] = React.useState<'never' | 'date' | 'duration'>('never');
   const [customDuration, setCustomDuration] = React.useState<boolean>(false);
   const [editCustomDuration, setEditCustomDuration] = React.useState<boolean>(false);
+  const queryClient = useQueryClient();
+  const username = React.useMemo(() => {
+    if (token) {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        window
+          .atob(base64)
+          .split('')
+          .map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join('')
+      );
+
+      return JSON.parse(jsonPayload).username;
+    }
+
+    return 'User';
+  }, [token]);
+
+  // Function to convert API response to local format
+  const mapResponseToUrlItem = (url: ShortenedUrlResponse): UrlItem => ({
+    id: url.id,
+    original: url.original_url,
+    shortened: `${FRONTEND_URL}/${url.short_url}`,
+    customPath: url.short_url,
+    createdAt: new Date(url.created_at).toLocaleString(),
+    expiresAt: url.expiry_date ? new Date(url.expiry_date).toLocaleString() : undefined,
+    clicks: url.redirects,
+  });
+
+  // Fetch all shortened URLs
+  const { data: shortenedUrls = [] } = useQuery({
+    queryKey: ['shortenedUrls'],
+    queryFn: async () => {
+      const response = await api.getShortenedURLs();
+      return response.data.map(mapResponseToUrlItem);
+    },
+  });
+
+  // Create mutation
+  const createUrlMutation = useMutation({
+    mutationFn: async (data: CreateUpdateUrlData) => {
+      const response = await api.createShortenedURL(data);
+      return response.data;
+    },
+    onSuccess: () => {
+      message.success('URL shortened successfully!');
+      form.resetFields();
+      setExpirationType('never');
+      setCustomDuration(false);
+      queryClient.invalidateQueries({ queryKey: ['shortenedUrls'] });
+    },
+    onError: (error) => {
+      message.error('Failed to shorten URL: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    },
+  });
+
+  // Create/Update URL mutation
+  const updateUrlMutation = useMutation({
+    mutationFn: async (data: UpdateURLRequest) => {
+      const response = await api.updateShortenedURL(data);
+      return response.data;
+    },
+    onSuccess: () => {
+      message.success('URL shortened successfully!');
+      form.resetFields();
+      setExpirationType('never');
+      setCustomDuration(false);
+      queryClient.invalidateQueries({ queryKey: ['shortenedUrls'] });
+    },
+    onError: (error) => {
+      message.error('Failed to shorten URL: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    },
+  });
+
+  // Delete URL mutation
+  const deleteUrlMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.deleteShortenedURL(id);
+      return id;
+    },
+    onSuccess: () => {
+      message.success('URL deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['shortenedUrls'] });
+    },
+    onError: (error) => {
+      message.error('Failed to delete URL: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    },
+  });
+
+  const calculateExpirationSeconds = (
+    type: 'never' | 'date' | 'duration',
+    expirationDate?: dayjs.Dayjs,
+    expirationDuration?: string,
+    customDurationValue?: number,
+    customDurationUnit?: string
+  ): number | undefined => {
+    if (type === 'never') {
+      return undefined;
+    } else if (type === 'date' && expirationDate) {
+      // Calculate seconds from now until expiration date
+      return expirationDate.diff(dayjs(), 'second');
+    } else if (type === 'duration' && expirationDuration) {
+      let seconds = 0;
+
+      if (expirationDuration === 'custom' && customDurationValue && customDurationUnit) {
+        // Convert custom duration to seconds
+        if (customDurationUnit === 'minute') seconds = customDurationValue * 60;
+        else if (customDurationUnit === 'hour') seconds = customDurationValue * 3600;
+        else if (customDurationUnit === 'day') seconds = customDurationValue * 86400;
+        else if (customDurationUnit === 'week') seconds = customDurationValue * 604800;
+        else if (customDurationUnit === 'month') seconds = customDurationValue * 2592000; // Approx
+      } else {
+        // Handle predefined durations
+        if (expirationDuration === '1h') seconds = 3600;
+        else if (expirationDuration === '24h') seconds = 86400;
+        else if (expirationDuration === '7d') seconds = 604800;
+        else if (expirationDuration === '30d') seconds = 2592000;
+      }
+
+      return seconds;
+    }
+
+    return undefined;
+  };
 
   const onFinish = (values: {
     url: string;
@@ -65,48 +216,19 @@ export default function App() {
     customDurationValue?: number;
     customDurationUnit?: string;
   }) => {
-    // In a real app, this would make an API call to your backend
-    const path = values.customPath || 'backendHandleThisPlz';
-    const shortenedUrl = `${FRONTEND_URL}/${path}`;
+    const expiration = calculateExpirationSeconds(
+      expirationType,
+      values.expirationDate,
+      values.expirationDuration,
+      values.customDurationValue,
+      values.customDurationUnit
+    );
 
-    let expiresAt: string | undefined;
-
-    if (expirationType === 'date' && values.expirationDate) {
-      expiresAt = values.expirationDate.format('YYYY-MM-DD HH:mm:ss');
-    } else if (expirationType === 'duration' && values.expirationDuration) {
-      // Calculate future date based on duration
-      let futureDate = dayjs();
-
-      if (values.expirationDuration === 'custom' && values.customDurationValue && values.customDurationUnit) {
-        // Handle custom duration
-        futureDate = futureDate.add(values.customDurationValue, values.customDurationUnit as any);
-      } else {
-        // Handle predefined durations
-        const duration = values.expirationDuration;
-        if (duration === '1h') futureDate = futureDate.add(1, 'hour');
-        else if (duration === '24h') futureDate = futureDate.add(24, 'hour');
-        else if (duration === '7d') futureDate = futureDate.add(7, 'day');
-        else if (duration === '30d') futureDate = futureDate.add(30, 'day');
-      }
-
-      expiresAt = futureDate.format('YYYY-MM-DD HH:mm:ss');
-    }
-
-    const newUrl: UrlItem = {
-      id: Math.random().toString(),
-      original: values.url,
-      shortened: shortenedUrl,
-      customPath: values.customPath || '',
-      createdAt: new Date().toLocaleString(),
-      expiresAt,
-      clicks: 0,
-    };
-
-    setShortenedUrls([newUrl, ...shortenedUrls]);
-    message.success('URL shortened successfully!');
-    form.resetFields();
-    setExpirationType('never');
-    setCustomDuration(false);
+    createUrlMutation.mutate({
+      original_url: values.url,
+      custom_path: values.customPath || undefined,
+      expiration,
+    });
   };
 
   const copyToClipboard = (text: string) => {
@@ -121,8 +243,7 @@ export default function App() {
   };
 
   const handleDelete = (id: string) => {
-    setShortenedUrls(shortenedUrls.filter((url) => url.id !== id));
-    message.success('URL deleted successfully');
+    deleteUrlMutation.mutate(id);
   };
 
   const showEditModal = (record: UrlItem) => {
@@ -159,51 +280,30 @@ export default function App() {
   const handleEditSubmit = () => {
     editForm.validateFields().then((values) => {
       if (editingUrl) {
-        const path = values.customPath || editingUrl.customPath || 'backendHandleThisPlz';
-        const shortenedUrl = `${FRONTEND_URL}/${path}`;
+        const expiration = calculateExpirationSeconds(
+          editExpirationType,
+          values.expirationDate,
+          values.expirationDuration,
+          values.customDurationValue,
+          values.customDurationUnit
+        );
 
-        let expiresAt: string | undefined = undefined;
-
-        if (editExpirationType === 'date' && values.expirationDate) {
-          expiresAt = values.expirationDate.format('YYYY-MM-DD HH:mm:ss');
-        } else if (editExpirationType === 'duration' && values.expirationDuration) {
-          // Calculate future date based on duration
-          let futureDate = dayjs();
-
-          if (values.expirationDuration === 'custom' && values.customDurationValue && values.customDurationUnit) {
-            // Handle custom duration
-            futureDate = futureDate.add(values.customDurationValue, values.customDurationUnit as any);
-          } else {
-            // Handle predefined durations
-            const duration = values.expirationDuration;
-            if (duration === '1h') futureDate = futureDate.add(1, 'hour');
-            else if (duration === '24h') futureDate = futureDate.add(24, 'hour');
-            else if (duration === '7d') futureDate = futureDate.add(7, 'day');
-            else if (duration === '30d') futureDate = futureDate.add(30, 'day');
+        updateUrlMutation.mutate(
+          {
+            id: editingUrl.id,
+            original_url: values.original,
+            custom_path: values.customPath || undefined,
+            expiration,
+          },
+          {
+            onSuccess: () => {
+              setIsEditModalVisible(false);
+              setEditingUrl(null);
+              setEditExpirationType('never');
+              setEditCustomDuration(false);
+            },
           }
-
-          expiresAt = futureDate.format('YYYY-MM-DD HH:mm:ss');
-        }
-
-        const updatedUrls = shortenedUrls.map((url) => {
-          if (url.id === editingUrl.id) {
-            return {
-              ...url,
-              original: values.original,
-              shortened: shortenedUrl,
-              customPath: values.customPath,
-              expiresAt,
-            };
-          }
-          return url;
-        });
-
-        setShortenedUrls(updatedUrls);
-        setIsEditModalVisible(false);
-        setEditingUrl(null);
-        setEditExpirationType('never');
-        setEditCustomDuration(false);
-        message.success('URL updated successfully');
+        );
       }
     });
   };
@@ -281,7 +381,7 @@ export default function App() {
         <div className='user-controls'>
           <Space>
             <Avatar icon={<UserOutlined />} />
-            <Text style={{ color: 'white' }}>User</Text>
+            <Text style={{ color: 'white' }}>{username}</Text>
             <Button type='link' icon={<LogoutOutlined />} onClick={handleLogout} style={{ color: 'white' }}>
               Logout
             </Button>
@@ -373,7 +473,7 @@ export default function App() {
               </Form.Item>
 
               <Form.Item>
-                <Button type='primary' htmlType='submit' block>
+                <Button type='primary' htmlType='submit' block loading={createUrlMutation.isPending}>
                   Shorten URL
                 </Button>
               </Form.Item>
@@ -389,6 +489,7 @@ export default function App() {
                 rowKey='id'
                 pagination={{ pageSize: 5 }}
                 scroll={{ x: true }}
+                loading={!!queryClient.isFetching({ queryKey: ['shortenedUrls'] })}
               />
             </Card>
           )}
@@ -397,13 +498,13 @@ export default function App() {
 
       <Modal
         title='Edit URL'
-        visible={isEditModalVisible}
+        open={isEditModalVisible}
         onCancel={handleEditCancel}
         footer={[
           <Button key='cancel' onClick={handleEditCancel}>
             Cancel
           </Button>,
-          <Button key='submit' type='primary' onClick={handleEditSubmit}>
+          <Button key='submit' type='primary' onClick={handleEditSubmit} loading={createUrlMutation.isPending}>
             Save
           </Button>,
         ]}>

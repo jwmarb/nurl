@@ -1,7 +1,7 @@
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use bcrypt::verify;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{encode, EncodingKey, Header};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
@@ -74,31 +74,30 @@ pub async fn login(form: web::Json<LoginForm>, db: web::Data<PgPool>) -> impl Re
     HttpResponse::Ok().json(APIResponse::data(TokenResponse { token: jwt }))
 }
 
-
-use actix_web::{
-    body::MessageBody,
-    dev::{ServiceRequest, ServiceResponse},
-    middleware::{from_fn, Next},
-    Error,
-    http::header,
-};
-
-async fn my_middleware(
-    mut req: ServiceRequest,
-    next: Next<impl MessageBody>,
-) -> Result<ServiceResponse<impl MessageBody>, Error> {
-    // Access the `Authorization` header
-    if let Some(auth_header) = req.headers().get(header::AUTHORIZATION) {
+#[get("/api/auth")]
+async fn is_authenticated(req: HttpRequest) -> impl Responder {
+    if let Some(auth_header) = req.headers().get("Authorization") {
         if let Ok(auth_str) = auth_header.to_str() {
-            println!("Authorization header: {}", auth_str);
-            // You can now use `auth_str` to validate/parse as needed
+            if auth_str.starts_with("Bearer ") {
+                let token = &auth_str[7..];
+
+                let decoded = decode::<Claims>(
+                    token,
+                    &DecodingKey::from_secret(NURL_SECRET.as_bytes()),
+                    &Validation::default(),
+                );
+
+                return match decoded {
+                    Ok(_) => HttpResponse::Ok().json(APIResponse::data("authenticated")),
+                    Err(_) => HttpResponse::Unauthorized()
+                        .json(APIResponse::error_message("Invalid token".to_string())),
+                };
+            }
         }
-    } else {
-        println!("No Authorization header found");
     }
-    // Continue to the next middleware/handler
-    next.call(req).await
+    HttpResponse::Unauthorized().json(APIResponse::error_message("Not authenticated".to_string()))
 }
+
 /*
 use bcrypt::{hash, verify};
 use jsonwebtoken::{encode, EncodingKey, Header};
