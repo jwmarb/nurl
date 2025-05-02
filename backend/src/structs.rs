@@ -1,19 +1,20 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
+use uuid::Uuid;
 
 // User model, holds their id + username + password
-#[derive(Debug, Clone)]
+#[derive(sqlx::FromRow)]
 pub(crate) struct User {
-    pub id: String,
+    pub id: Uuid,
     pub username: String,
 
     pub password: String, // bcrypt hash password
 }
 
 // The URL shortener model itself
-#[derive(Debug, Clone)]
+#[derive(sqlx::FromRow)]
 pub(crate) struct ShortenedUrl {
-    pub id: String,           // unique id
+    pub id: Uuid,             // unique id
     pub original_url: String, // orig long url
     pub short_url: String,    // new short url
 
@@ -21,7 +22,7 @@ pub(crate) struct ShortenedUrl {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 
-    pub owner: String,  // the id of the person that owns this
+    pub owner: String,  // foreign key. the id of the person that owns this
     pub redirects: u64, // use count
 }
 
