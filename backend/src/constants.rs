@@ -22,6 +22,9 @@ pub(crate) static NURL_SECRET: Lazy<String> = Lazy::new(|| {
     option_env!("NURL_SECRET")
         .map(|s| s.to_string())
         .unwrap_or_else(|| {
+            if *ENVIRONMENT == "development" {
+                return "development-secret-key".to_string(); // Use 'a' for development to avoid issues with JWT encoding
+            }
             let mut rng = rand::rng();
             let secret: String = (0..32) // Generate a 32-character secret
                 .map(|_| {

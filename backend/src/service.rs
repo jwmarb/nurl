@@ -8,8 +8,8 @@ use uuid::Uuid;
 // expiry (if not provided then no expiration)
 pub async fn create_or_update_url(
     user: &User,
-    original_url: &str,
-    custom_url: Option<&str>,
+    original_url: &String,
+    custom_url: Option<String>,
     expiration_sec: Option<i64>,
     pool: &PgPool,
 ) -> Result<ShortenedUrl, std::io::Error> {
@@ -35,12 +35,15 @@ pub async fn create_or_update_url(
             let mut short_url;
             loop {
                 short_url = nanoid!(5); // 5 characters should be enough for uniqueness
-                let exists: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM shortened_urls WHERE short_url = $1")
-                    .bind(&short_url)
-                    .fetch_one(pool)
-                    .await
-                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-                
+                let exists: (i64,) =
+                    sqlx::query_as("SELECT COUNT(*) FROM shortened_urls WHERE short_url = $1")
+                        .bind(&short_url)
+                        .fetch_one(pool)
+                        .await
+                        .map_err(|e| {
+                            std::io::Error::new(std::io::ErrorKind::Other, e.to_string())
+                        })?;
+
                 if exists.0 == 0 {
                     break;
                 }
@@ -50,14 +53,13 @@ pub async fn create_or_update_url(
     };
 
     // Check if URL already exists for this user
-    let existing_url: Option<ShortenedUrl> = sqlx::query_as(
-        "SELECT * FROM shortened_urls WHERE original_url = $1 AND owner = $2"
-    )
-    .bind(original_url)
-    .bind(user.id)
-    .fetch_optional(pool)
-    .await
-    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+    let existing_url: Option<ShortenedUrl> =
+        sqlx::query_as("SELECT * FROM shortened_urls WHERE original_url = $1 AND owner = $2")
+            .bind(original_url)
+            .bind(user.id)
+            .fetch_optional(pool)
+            .await
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
 
     if let Some(mut existing) = existing_url {
         // Update existing URL
@@ -89,7 +91,7 @@ pub async fn create_or_update_url(
     let id = Uuid::new_v4();
     let short_url = ShortenedUrl {
         id,
-        original_url: original_url.to_owned(),
+        original_url: original_url.to_string(),
         short_url: final_custom_url,
         expiry_date,
         created_at: cur_time,
@@ -127,7 +129,7 @@ pub async fn create_or_update_url(
     Ok(short_url)
 }
 // deletes a url (by id) for the user
-pub async fn delete_url(user: &User, id: &str, pool: &PgPool) -> Result<(), std::io::Error> {
+pub async fn delete_url(user: &User, id: &String, pool: &PgPool) -> Result<(), std::io::Error> {
     let uuid = Uuid::parse_str(id)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, e.to_string()))?;
 
@@ -151,26 +153,27 @@ pub async fn delete_url(user: &User, id: &str, pool: &PgPool) -> Result<(), std:
 
 // returns a list of the shortened urls for a given user
 pub async fn list_urls(user: &User, pool: &PgPool) -> Result<Vec<ShortenedUrl>, std::io::Error> {
-    let urls = sqlx::query_as("SELECT * FROM shortened_urls WHERE owner = $1 ORDER BY created_at DESC")
-        .bind(user.id)
-        .fetch_all(pool)
-        .await
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+    let urls =
+        sqlx::query_as("SELECT * FROM shortened_urls WHERE owner = $1 ORDER BY created_at DESC")
+            .bind(user.id)
+            .fetch_all(pool)
+            .await
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
 
     Ok(urls)
 }
 
 // redirect shortened url to the actual one
 pub async fn resolve_url(custom_url: &str, pool: &PgPool) -> Result<String, std::io::Error> {
-    let url: Option<ShortenedUrl> = sqlx::query_as("SELECT * FROM shortened_urls WHERE short_url = $1")
-        .bind(custom_url)
-        .fetch_optional(pool)
-        .await
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+    let url: Option<ShortenedUrl> =
+        sqlx::query_as("SELECT * FROM shortened_urls WHERE short_url = $1")
+            .bind(custom_url)
+            .fetch_optional(pool)
+            .await
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
 
-    let url = url.ok_or_else(|| {
-        std::io::Error::new(std::io::ErrorKind::NotFound, "URL not found")
-    })?;
+    let url =
+        url.ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, "URL not found"))?;
 
     // Check if URL has expired
     if let Some(expiry) = url.expiry_date {

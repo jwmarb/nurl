@@ -1,12 +1,15 @@
 use actix_web::{
     dev::{Service, ServiceRequest, ServiceResponse, Transform},
-    Error, HttpMessage, web,
     http::header,
+    Error, HttpMessage,
 };
-use futures::future::{LocalBoxFuture, Ready, ready};
+use futures::future::{ready, LocalBoxFuture, Ready};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
-use std::{rc::Rc, task::{Context, Poll}};
+use std::{
+    rc::Rc,
+    task::{Context, Poll},
+};
 
 use crate::constants::NURL_SECRET;
 
@@ -53,12 +56,14 @@ where
         self.service.poll_ready(cx)
     }
 
-    fn call(&self, mut req: ServiceRequest) -> Self::Future {
+    fn call(&self, req: ServiceRequest) -> Self::Future {
         let service = self.service.clone();
 
         Box::pin(async move {
             // Extract token from Authorization header
-            if let Some(header_val) = req.headers().get(header::AUTHORIZATION)
+            if let Some(header_val) = req
+                .headers()
+                .get(header::AUTHORIZATION)
                 .and_then(|h| h.to_str().ok())
                 .filter(|s| s.starts_with("Bearer "))
             {
@@ -76,7 +81,7 @@ where
                     req.extensions_mut().insert(username);
                 }
             }
-            
+
             // Continue with the request processing
             service.call(req).await
         })

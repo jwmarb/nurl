@@ -50,7 +50,7 @@ pub async fn init_db() -> Result<Pool<Postgres>, std::io::Error> {
         updated_at TIMESTAMPTZ NOT NULL,
 
         owner UUID NOT NULL REFERENCES users(id),
-        redirects INTEGER NOT NULL DEFAULT 0
+        redirects BIGINT NOT NULL DEFAULT 0
     );
     "#,
     )

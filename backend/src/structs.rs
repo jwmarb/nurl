@@ -3,7 +3,7 @@ use serde::Serialize;
 use uuid::Uuid;
 
 // User model, holds their id + username + password
-#[derive(Debug, sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow, Clone)]
 pub(crate) struct User {
     pub id: Uuid,
     pub username: String,
@@ -17,7 +17,7 @@ pub(crate) struct Claims {
 }
 
 // The URL shortener model itself
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Serialize)]
 pub(crate) struct ShortenedUrl {
     pub id: Uuid,             // unique id
     pub original_url: String, // orig long url
@@ -28,7 +28,7 @@ pub(crate) struct ShortenedUrl {
     pub updated_at: DateTime<Utc>,
 
     pub owner: Uuid,    // foreign key. the id of the person that owns this
-    pub redirects: i32, // use count
+    pub redirects: i64, // use count
 }
 
 #[derive(Serialize)]

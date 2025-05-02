@@ -1,4 +1,5 @@
 mod constants;
+mod middleware;
 mod routes;
 mod service;
 mod structs;
@@ -7,7 +8,9 @@ use actix_files::{Files, NamedFile};
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use constants::{FRONTEND_DIST, HOST, PORT};
 use dotenv::dotenv;
+use middleware::{ExtractUsernameJWT, ExtractUsernameMiddleware};
 use routes::register::register;
+use routes::shorten::{delete_shortened_url, shorten_url};
 use routes::{auth::login, health::health};
 use utils::{init_db, is_production};
 
@@ -31,6 +34,12 @@ async fn main() -> std::io::Result<()> {
             .service(health)
             .service(register)
             .service(login)
+            .service(
+                web::scope("")
+                    .wrap(ExtractUsernameJWT)
+                    .service(shorten_url)
+                    .service(delete_shortened_url),
+            )
             .app_data(pool.clone());
 
         if is_production() {
