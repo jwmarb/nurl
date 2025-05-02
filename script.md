@@ -114,6 +114,23 @@ So, we have used a good amount of other languages throughout our times as CS maj
 
 ## **<u>Speaker 2</u>**
 
+So, now that we have talked about some basic language comparisons and our rust usage, lets talk a little bit about the history + use cases for rust, along with its features.
+
+#### **Overview of Rust: History and Usage**
+
+- **History**: Rust was started by Graydon Hoare in 2006 as a side project at Mozilla, aiming to create a safer alternative to C/C++ for systems programming. Mozilla officially sponsored it in 2009, and version 1.0 was released in 2015.
+- **Usage**: Rust is used for performance-critical backend systems, operating systems, embedded devices, and increasingly in web backend services.
+- **Community**: Rust has a growing, vibrant community with strong documentation and support.
+
+#### **Paradigms and Features**
+
+- **Multi-Paradigm**: Rust supports both object-oriented and functional programming paradigms, allowing flexibility in code organization and composition.
+- **Ownership and Borrowing**: Rust’s unique ownership system enforces memory safety at compile time, preventing data races and many classes of bugs without a garbage collector.
+- **Type System**: Rust is statically typed, with powerful generics and type inference, making code both safe and expressive.
+
+
+Now, let's discuss the rust features that WE used in our project that would be important to understand for the next section when we showcase and demo the code:
+
 #### **Core Rust Features in Web Development**
 - **Async/Await Pattern**:  
   ```rust
@@ -248,18 +265,6 @@ So, we have used a good amount of other languages throughout our times as CS maj
 - **Structs and Traits**: Used for modeling data and behavior. For example, our `User` and `ShortenedUrl` structs in `structs.rs` model users and URLs, respectively.
 - **Error Handling**: Rust uses the `Result` and `Option` types for error handling, ensuring errors are handled explicitly.
 - **Async/Await**: Our endpoints are asynchronous for scalability, using `async fn` and `.await` with Actix-web. -->
-
-#### **Overview of Rust: History and Usage**
-
-- **History**: Rust was started by Graydon Hoare in 2006 as a side project at Mozilla, aiming to create a safer alternative to C/C++ for systems programming. Mozilla officially sponsored it in 2009, and version 1.0 was released in 2015.
-- **Usage**: Rust is used for performance-critical backend systems, operating systems, embedded devices, and increasingly in web backend services.
-- **Community**: Rust has a growing, vibrant community with strong documentation and support.
-
-#### **Paradigms and Features**
-
-- **Multi-Paradigm**: Rust supports both object-oriented and functional programming paradigms, allowing flexibility in code organization and composition.
-- **Ownership and Borrowing**: Rust’s unique ownership system enforces memory safety at compile time, preventing data races and many classes of bugs without a garbage collector.
-- **Type System**: Rust is statically typed, with powerful generics and type inference, making code both safe and expressive.
 
 ---
 
