@@ -5,7 +5,6 @@ mod service;
 mod structs;
 mod utils;
 use actix_files as fs;
-use actix_files::Files;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use constants::{FRONTEND_DIST, HOST, PORT};
 use dotenv::dotenv;
@@ -17,8 +16,6 @@ use routes::shorten::{
     delete_shortened_url, get_shortened_urls, shorten_url, update_shortened_url,
 };
 use routes::{auth::login, health::health};
-use serde_json::Value;
-use std::fs as std_fs;
 use utils::{init_db, is_production};
 
 #[get("/")]
@@ -104,7 +101,7 @@ async fn main() -> std::io::Result<()> {
 
         app
     })
-    .bind((*HOST, *PORT))?;
+    .bind((HOST.as_str(), *PORT))?;
 
     if !is_production() {
         println!("Did not detect a production environment. Static files will not be served!");
