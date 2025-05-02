@@ -21,7 +21,7 @@ pub async fn redirect_to_original_url(
     let original_url = shortened_url.original_url;
     println!("Redirecting to: {}", original_url);
 
-    HttpResponse::PermanentRedirect()
+    HttpResponse::TemporaryRedirect()
         .append_header(("Location", original_url))
         .finish()
 }

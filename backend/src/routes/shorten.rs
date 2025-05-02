@@ -70,7 +70,9 @@ pub async fn delete_shortened_url(
     let s = id.into_inner();
     match delete_url(&user, &s, pool.get_ref()).await {
         Ok(_) => HttpResponse::NoContent().finish(),
-        Err(_) => HttpResponse::InternalServerError().finish(),
+        Err(e) => {
+            HttpResponse::InternalServerError().json(APIResponse::error_message(e.to_string()))
+        }
     }
 }
 
@@ -90,7 +92,9 @@ pub async fn get_shortened_urls(
 
     match list_urls(&user, pool.get_ref()).await {
         Ok(urls) => HttpResponse::Ok().json(APIResponse::data(urls)),
-        Err(_) => HttpResponse::InternalServerError().finish(),
+        Err(e) => {
+            HttpResponse::InternalServerError().json(APIResponse::error_message(e.to_string()))
+        }
     }
 }
 

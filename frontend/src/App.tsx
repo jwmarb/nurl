@@ -125,6 +125,9 @@ export default function App() {
   const createUrlMutation = useMutation({
     mutationFn: async (data: CreateUpdateUrlData) => {
       const response = await api.createShortenedURL(data);
+      if (response.error) {
+        throw new Error(response.error);
+      }
       return response.data;
     },
     onSuccess: () => {
@@ -143,6 +146,9 @@ export default function App() {
   const updateUrlMutation = useMutation({
     mutationFn: async (data: UpdateURLRequest) => {
       const response = await api.updateShortenedURL(data);
+      if (response.error) {
+        throw new Error(response.error);
+      }
       return response.data;
     },
     onSuccess: () => {
