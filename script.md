@@ -1,8 +1,8 @@
 # **Part 1: Introduction, Team, and Why Rust**
 
-## <u>**Speaker 1</u>**
+## **<u>Trevor</u>**
 
-Hello everyone, and welcome to our presentation on our Rust-based URL shortener project, nurl. I'm [Name], and joining me are [Name] and [Name]. Each of us will be presenting for about five minutes, covering different aspects of our project and the Rust language.
+Hello everyone, and welcome to our presentation on our Rust-based URL shortener project, nurl. I'm Trevor, and joining me are Adam and Joseph.
 
 #### **Why We Chose Rust and This Project**
 So, why did we choose rust for our project?:
@@ -11,10 +11,10 @@ Firstly, we chose rust since all of us were interested in writing something in r
 
 #### **Brief Overview of the Application**
 As a super-brief overview of the app, we made a URL shortener that allows users to resgister to make an account,
-log into the account they made, and then view a dashboard where they can create and manage shortened URLs. Each user has their own set of URLs, and all operations are protected by JWT-based authentication for secturity. The backend is built with the Actix-web framework and uses PostgreSQL for storing the data and ensuring it persists, like you would in a prod environment app.
+log into the account they made, and then view a dashboard where they can create and manage shortened URLs. Each user has their own set of URLs, and all operations are protected by JWT-based authentication for secturity. The backend is built with the Actix-web framework and uses PostgreSQL for storing the data.
 
 #### **Rust VS Other Languages**
-So, we have used a good amount of other languages throughout our times as CS majors. For the sake of conciseness, lets limit the comparisons to the ones we have used in classes we have taken. Namely, Python, Java, C, Javascript, Prolog, Standard ML, Chapel, MIPS assembly.
+So, we have used a good amount of other languages throughout our times as CS majors, so I will compare against those.
 
 ---
 
@@ -112,7 +112,7 @@ So, we have used a good amount of other languages throughout our times as CS maj
 
 # **Part 2: Rust Language Tutorial and Paradigms**
 
-## **<u>Speaker 2</u>**
+## **<u>Adam</u>**
 
 So, now that we have talked about some basic language comparisons and our rust usage, lets talk a little bit about the history + use cases for rust, along with its features.
 
@@ -283,20 +283,6 @@ Now, let's discuss the rust features that WE used in our project that would be i
   }
   ```
   Rust's ownership system prevents data races in concurrent DB access.
-
----
-
-<!-- 
-- **Variables and Types**: Rust uses `let` to declare variables, which are immutable by default. Use `mut` for mutability. Types are inferred or can be specified explicitly.
-- **Functions**: Declared with `fn`. Example:  
-  ```rust
-  fn main() {
-      println!("Hello, World!");
-  }
-  ```
-- **Structs and Traits**: Used for modeling data and behavior. For example, our `User` and `ShortenedUrl` structs in `structs.rs` model users and URLs, respectively.
-- **Error Handling**: Rust uses the `Result` and `Option` types for error handling, ensuring errors are handled explicitly.
-- **Async/Await**: Our endpoints are asynchronous for scalability, using `async fn` and `.await` with Actix-web. -->
 
 ---
 
