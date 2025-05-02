@@ -5,25 +5,57 @@ use uuid::Uuid;
 
 // take in the user, orig url, custom url (we randomize if not provided),
 // expiry (if not provided then no expiration) 
-pub fn createOrUpdateUrl (
+pub fn create_or_update_url (
     user: &User,
     original_url: &str,
-    custom_url: &str,
-    expiration_seconds: Option<u64>,
+    custom_url: Option<&str>,
+    expiration_sec: Option<u64>,
 ) -> Result<ShortenedUrl, ShortenError> {
+    // TODO IMPLEMENT UPDATING FEATURE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    let cur_time =  Utc::now();
+
+    let id =  Uuid::new_v4().to_string();
+
+    // see if expiry provided, if so calulate the expiry date
+    let expiry_date = if let Some(secs) = expiration_sec {
+        Some(cur_time + Duration::seconds(secs as i64))
+    } else {
+        None
+    };
+
+    // Check if short url name provided. Otherwise generate a random one
+    let final_custom_url = match custom_url {
+        Some(url) if !url.is_empty() => {
+            // TODO: make sure it is a valid one (no slashes in it, does not equal exactly auth)
+            url.to_owned()
+        }
+        _ => {
+            // TODO: NEED TO ENSURE UNIQUENESS, do some randomization and lookup to make sure it unique
+            // use nanoid for this
+            "abcde"
+        }
+    };
+
     // make the url object
+    let short_url = ShortenedUrl {
+        id: id,
+        original_url: original_url.to_owned(),
+        short_url: final_custom_url.to_owned(),
+        expiry_date,
+        created_at: cur_time,
+        updated_at: cur_time,
+        owner: user.id.clone(),
+        redirects: 0,
+    }
 
-    // make a random and unique custom url if it is not proivded by user
-
-    // get the time, make optional expiry, input the stuff to obj
-
-    // then we can add to db
-    Ok(())
+    // TODO: then we can add to db
+    Ok(short_url)
 }
 
 
 // deletes a url (by id) for the user
-pub fn deleteUrl(_user: &User, _id: &str) -> Result<(), ShortenError> {
+pub fn deleteUrl(user: &User, id: &str) -> Result<(), ShortenError> {
     // rmeove the url in the db
 
     // check that it is owned by the user, then if so -> delete.s
@@ -31,13 +63,13 @@ pub fn deleteUrl(_user: &User, _id: &str) -> Result<(), ShortenError> {
 }
 
 // returns a list of the shortened urls for a given user
-pub fn listUrls(_user: &User) -> Result<Vec<ShortenedUrl>, ShortenError> {
+pub fn listUrls(user: &User) -> Result<Vec<ShortenedUrl>, ShortenError> {
     // query db and return the list
     Ok(Vec::new())
 }
 
 // redirect shortened url to the actual one
-pub fn resolveUrl(custom_url: &str) -> Result<String, ShortenError> {
+pub fn resolveUrl(customUrl: &str) -> Result<String, ShortenError> {
     // goto database, check expiry, return the redirect count and actual url, etc...
-    Ok(format!("insert_actual_orig_url_here for: '{}'", custom_url))
+    Ok(format!("insert_actual_orig_url_here for: '{}'", customUrl))
 }
