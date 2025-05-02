@@ -6,8 +6,3 @@ services:
       - 5432:5432
     environment:
       POSTGRES_PASSWORD: postgres
-  valkey:
-    container_name: valkey
-    image: valkey/valkey:latest
-    ports:
-      - 5433:6379

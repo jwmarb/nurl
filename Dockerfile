@@ -1,7 +1,7 @@
 FROM node:23-slim AS frontend
 
-ENV PNPM_HOME="/pnpm" \
-    PATH="$PNPM_HOME:$PATH"
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
     
 RUN corepack enable
 
@@ -21,14 +21,13 @@ WORKDIR /app
 
 RUN cargo build --release
 
-FROM debian:bookworm-slim
+FROM debian:bookworm
 
-# RUN apk upgrade
-RUN apt-get update && apt-get upgrade -y
+RUN apt-get update && apt-get upgrade -y && apt-get install -y postgresql postgresql-client
 RUN mkdir -p /app
 
 COPY --from=backend /app/target/release/backend /app
-COPY --from=frontend /app/dist /app/dist
+COPY --from=frontend /app/build /app/dist
 
 WORKDIR /app
 

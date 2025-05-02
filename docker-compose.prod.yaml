@@ -1,0 +1,42 @@
+services:
+  nurl:
+    container_name: nurl
+    build: .
+    ports:
+      - 8080:8080
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@database:5432/nurl
+      - HOST=0.0.0.0
+      - ENVIRONMENT=production
+      - FRONTEND_DIST=./dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nurlapp
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=nurl
+      - BACKEND_URL=http://localhost:8080
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      nurlapp:
+        aliases:
+          - database
+volumes:
+  postgres_data:
+networks:
+  nurlapp:
+    driver: bridge
