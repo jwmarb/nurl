@@ -16,7 +16,7 @@ struct RegisterFormInputTarget {
     target_field: String,
 }
 
-#[post("/api/register")]
+#[post("/register")]
 async fn register(form: web::Json<RegisterForm>, pool: web::Data<PgPool>) -> impl Responder {
     let form = form.into_inner();
 

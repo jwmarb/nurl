@@ -4,9 +4,9 @@ mod routes;
 mod service;
 mod structs;
 mod utils;
+use actix_cors::Cors;
 use actix_files as fs;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
-use actix_cors::Cors;
 use constants::{FRONTEND_DIST, HOST, PORT};
 use dotenv::dotenv;
 use middleware::ExtractUsernameJWT;
@@ -81,17 +81,20 @@ async fn main() -> std::io::Result<()> {
         let mut app = App::new()
             .wrap(cors)
             .service(health)
-            .service(register)
-            .service(login)
             .service(
                 web::scope("/api")
-                    .wrap(ExtractUsernameJWT)
-                    .service(shorten_url)
-                    .service(delete_shortened_url)
-                    .service(get_shortened_urls)
-                    .service(update_shortened_url),
+                    .service(register)
+                    .service(login)
+                    .service(is_authenticated)
+                    .service(
+                        web::scope("")
+                            .wrap(ExtractUsernameJWT)
+                            .service(shorten_url)
+                            .service(delete_shortened_url)
+                            .service(get_shortened_urls)
+                            .service(update_shortened_url),
+                    ),
             )
-            .service(is_authenticated)
             .service(redirect_to_original_url)
             .app_data(pool.clone());
 

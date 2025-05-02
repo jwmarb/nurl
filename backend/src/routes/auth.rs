@@ -22,7 +22,7 @@ pub struct TokenResponse {
     pub token: String,
 }
 
-#[post("/api/auth")]
+#[post("/auth")]
 pub async fn login(form: web::Json<LoginForm>, db: web::Data<PgPool>) -> impl Responder {
     let row = sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = $1")
         .bind(&form.username)
@@ -74,7 +74,7 @@ pub async fn login(form: web::Json<LoginForm>, db: web::Data<PgPool>) -> impl Re
     HttpResponse::Ok().json(APIResponse::data(TokenResponse { token: jwt }))
 }
 
-#[get("/api/auth")]
+#[get("/auth")]
 async fn is_authenticated(req: HttpRequest) -> impl Responder {
     if let Some(auth_header) = req.headers().get("Authorization") {
         if let Ok(auth_str) = auth_header.to_str() {
