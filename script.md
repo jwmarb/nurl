@@ -118,16 +118,48 @@ So, now that we have talked about some basic language comparisons and our rust u
 
 #### **Overview of Rust: History and Usage**
 
-- **History**: Rust was started by Graydon Hoare in 2006 as a side project at Mozilla, aiming to create a safer alternative to C/C++ for systems programming. Mozilla officially sponsored it in 2009, and version 1.0 was released in 2015.
-- **Usage**: Rust is used for performance-critical backend systems, operating systems, embedded devices, and increasingly in web backend services.
-- **Community**: Rust has a growing, vibrant community with strong documentation and support.
+- **Origins and Motivation:**  
+  Rust was created by Graydon Hoare in 2006 while he was at Mozilla, inspired by the need for a safer alternative to C and C++ for systems programming. Hoare’s motivation stemmed from issues with memory bugs (like a broken elevator due to software errors), which are common in languages that require manual memory management.
+
+- **Mozilla Sponsorship and Open Source:**  
+  Mozilla began sponsoring Rust in 2009, aiming to use it for browser engines. In 2010, Rust was released as open source, allowing the community to contribute. The first stable release, Rust 1.0, came out in 2015.
+
+- **Evolution and Influences:**  
+  Rust’s design drew on decades of programming language research, blending together ideas from CLU, Erlang, Mesa, and others. Overall language was built to focus on safety and simplicity. Its unique ownership model replaced the need for garbage collection, a big feature that sets Rust apart from both C++ and memory-managed languages.
+
+- **Adoption and Impact:**  
+  Since 1.0, Rust has been used in high-profile projects, including Mozilla’s Servo browser engine and parts of Firefox. Companies like Microsoft have adopted Rust for rewriting core libraries to improve security and reliability.
+
+- **Current Use Cases:**  
+  Rust is now widely used for:
+  - Systems-level programming (operating systems, browser engines)
+  - Performance-critical backend services (like the web API in our project)
+  - WebAssembly applications
+  - Security-sensitive software
+
+---
 
 #### **Paradigms and Features**
 
-- **Multi-Paradigm**: Rust supports both object-oriented and functional programming paradigms, allowing flexibility in code organization and composition.
-- **Ownership and Borrowing**: Rust’s unique ownership system enforces memory safety at compile time, preventing data races and many classes of bugs without a garbage collector.
-- **Type System**: Rust is statically typed, with powerful generics and type inference, making code both safe and expressive.
+- **Multi-Paradigm Flexibility:**  
+  Rust is designed as a multi-paradigm language, blending object-oriented programming (OOP) and functional programming (FP) concepts. This allows developers to use structured and encapsulated designs when needed, or to leverage functional techniques like higher-order functions, pattern matching, and immutability.
 
+- **Ownership and Borrowing (Memory Safety):**  
+   Every value in Rust has a single owner, and the compiler enforces strict rules about how data is borrowed and mutated. The "borrow checker" is the tool that enforces these rules, ensuring memory and thread safety.
+
+- **Zero-Cost Abstractions:**  
+  Rust’s abstractions (like iterators, traits, and generics) are designed to compile down to highly efficient machine code with no runtime overhead. This allows devs to write expressive and high-level code without sacrificing performance.
+
+- **Type System and Generics:**  
+  Rust is statically and strongly typed, with a powerful type inference engine. Generics and traits enable code reuse and abstraction while maintaining type safety.
+
+- **Concurrency and Parallelism:**  
+  Rust’s type system enforces safe concurrency. Data races are prevented at compile time, making it possible to write multithreaded code that is both fast and reliable.
+
+- **Security and Reliability:**  
+  Rust is "secure by design," reducing vulnerabilities like buffer overflows and injection attacks. Its strict compile-time checks and lack of undefined behavior make it a strong choice for critical/sensitive applications.
+
+---
 
 Now, let's discuss the rust features that WE used in our project that would be important to understand for the next section when we showcase and demo the code:
 
