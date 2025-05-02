@@ -2,6 +2,7 @@ mod constants;
 mod routes;
 mod structs;
 mod utils;
+mod service;
 use actix_files::{Files, NamedFile};
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use constants::{FRONTEND_DIST, HOST, PORT};
