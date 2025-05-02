@@ -32,7 +32,7 @@ pub async fn init_db() -> Result<Pool<Postgres>, std::io::Error> {
         r#"
         CREATE TABLE IF NOT EXISTS users (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            username TEXT NOT NULL,
+            username TEXT NOT NULL UNIQUE,
             password TEXT NOT NULL
         );
         "#,
