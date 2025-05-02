@@ -11,6 +11,7 @@ use constants::{FRONTEND_DIST, HOST, PORT};
 use dotenv::dotenv;
 use middleware::ExtractUsernameJWT;
 use routes::auth::is_authenticated;
+use routes::redirect::redirect_to_original_url;
 use routes::register::register;
 use routes::shorten::{
     delete_shortened_url, get_shortened_urls, shorten_url, update_shortened_url,
@@ -86,6 +87,7 @@ async fn main() -> std::io::Result<()> {
                     .service(update_shortened_url),
             )
             .service(is_authenticated)
+            .service(redirect_to_original_url)
             .app_data(pool.clone());
 
         if is_production() {
