@@ -33,7 +33,7 @@ pub fn create_or_update_url (
         _ => {
             // TODO: NEED TO ENSURE UNIQUENESS, do some randomization and lookup to make sure it unique
             // use nanoid for this
-            "abcde"
+            "abcde".to_string()
         }
     };
 
@@ -47,7 +47,7 @@ pub fn create_or_update_url (
         updated_at: cur_time,
         owner: user.id.clone(),
         redirects: 0,
-    }
+    };
 
     // TODO: then we can add to db
     Ok(short_url)
@@ -55,7 +55,7 @@ pub fn create_or_update_url (
 
 
 // deletes a url (by id) for the user
-pub fn deleteUrl(user: &User, id: &str) -> Result<(), ShortenError> {
+pub fn delete_url(user: &User, id: &str) -> Result<(), ShortenError> {
     // rmeove the url in the db
 
     // check that it is owned by the user, then if so -> delete.s
@@ -63,13 +63,13 @@ pub fn deleteUrl(user: &User, id: &str) -> Result<(), ShortenError> {
 }
 
 // returns a list of the shortened urls for a given user
-pub fn listUrls(user: &User) -> Result<Vec<ShortenedUrl>, ShortenError> {
+pub fn list_urls(user: &User) -> Result<Vec<ShortenedUrl>, ShortenError> {
     // query db and return the list
     Ok(Vec::new())
 }
 
 // redirect shortened url to the actual one
-pub fn resolveUrl(customUrl: &str) -> Result<String, ShortenError> {
+pub fn resolve_url(custom_url: &str) -> Result<String, ShortenError> {
     // goto database, check expiry, return the redirect count and actual url, etc...
     Ok(format!("insert_actual_orig_url_here for: '{}'", customUrl))
 }
