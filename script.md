@@ -114,8 +114,130 @@ So, we have used a good amount of other languages throughout our times as CS maj
 
 ## **<u>Speaker 2</u>**
 
-#### **Brief Tutorial: Rust Basics Used in Our Project**
+#### **Core Rust Features in Web Development**
+- **Async/Await Pattern**:  
+  ```rust
+  #[post("/api/auth")]
+  async fn login(form: web::Json, db: web::Data) -> impl Responder {
+      // Async database query
+      let user = sqlx::query_as::("SELECT * FROM users...")
+          .fetch_one(db.get_ref())
+          .await;
+  }
+  ```
+  Rust's async/await (via Tokio runtime in Actix-web) enables non-blocking I/O for high concurrency. The `.await` keyword suspends execution without blocking threads.
 
+- **Type Safety with SQLx**:
+  ```rust
+  let exists: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users...")
+      .bind(&form.username)
+      .fetch_one(pool)
+      .await?;
+  ```
+  SQLx performs compile-time SQL query validation and type checking against your database schema.
+
+- **Error Propagation**:
+  ```rust
+  let hashed = hash(&form.password, DEFAULT_COST)
+      .map_err(|_| APIResponse::error_message("Hashing failed"))?;
+  ```
+  The `?` operator propagates errors while `map_err` converts error types for consistent API responses.
+
+#### **Key Libraries Explained**
+1. **Actix-web Framework**:
+   - Actor-based web framework with middleware support
+   - Routes are declared with procedural macros:
+     ```rust
+     #[post("/api/shorten")]
+     async fn shorten_url(/* ... */) -> impl Responder { /* ... */ }
+     ```
+   - Uses extractors for request data:
+     ```rust
+     web::Json // Auto-deserializes JSON
+     web::Data    // Database connection pool
+     ```
+
+2. **SQLx + PostgreSQL**:
+   - Connection pooling for efficient DB access:
+     ```rust
+     PgPoolOptions::new()
+         .max_connections(5)
+         .connect(*POSTGRESQL_URL)
+     ```
+   - Compile-time checked queries:
+     ```rust
+     sqlx::query_as!(User, "SELECT id, username...")
+     ```
+
+3. **Bcrypt Password Hashing**:
+   ```rust
+   let hashed = hash(password, DEFAULT_COST)?; // Registration
+   verify(password, &stored_hash)?;            // Login
+   ```
+   Uses adaptive hashing with salt to resist brute-force attacks.
+
+4. **JWT Authentication**:
+   - Token generation:
+     ```rust
+     jsonwebtoken::encode(&Header, &Claims { ... }, &EncodingKey)
+     ```
+   - Middleware verification:
+     ```rust
+     decode::(token, &DecodingKey, &Validation)
+     ```
+
+#### **Database Schema Management**
+- **Schema Initialization**:
+  ```rust
+  CREATE TABLE users (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      username TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL
+  );
+  ```
+  Uses PostgreSQL UUIDs and constraints for data integrity.
+
+- **Connection Pooling**:
+  ```rust
+  app.app_data(pool.clone()); // Shared across threads
+  ```
+  Managed via `PgPoolOptions` for optimal performance.
+
+#### **Advanced Patterns**
+- **Middleware Architecture**:
+  ```rust
+  impl Transform for ExtractUsernameJWT {
+      fn new_transform(&self, service: S) -> Self::Future {
+          // JWT processing logic
+      }
+  }
+  ```
+  Creates reusable authentication middleware.
+
+- **Type-Driven API Responses**:
+  ```rust
+  #[derive(Serialize)]
+  pub struct APIResponse {
+      pub error: Option,
+      pub data: Option
+  }
+  ```
+  Ensures consistent error handling across endpoints.
+
+- **Ownership in Database Operations**:
+  ```rust
+  pub async fn create_or_update_url(
+      user: &User,  // Borrowed reference
+      pool: &PgPool // Shared reference
+  ) -> Result {
+      // Ownership managed through async/.await
+  }
+  ```
+  Rust's ownership system prevents data races in concurrent DB access.
+
+---
+
+<!-- 
 - **Variables and Types**: Rust uses `let` to declare variables, which are immutable by default. Use `mut` for mutability. Types are inferred or can be specified explicitly.
 - **Functions**: Declared with `fn`. Example:  
   ```rust
@@ -125,7 +247,7 @@ So, we have used a good amount of other languages throughout our times as CS maj
   ```
 - **Structs and Traits**: Used for modeling data and behavior. For example, our `User` and `ShortenedUrl` structs in `structs.rs` model users and URLs, respectively.
 - **Error Handling**: Rust uses the `Result` and `Option` types for error handling, ensuring errors are handled explicitly.
-- **Async/Await**: Our endpoints are asynchronous for scalability, using `async fn` and `.await` with Actix-web.
+- **Async/Await**: Our endpoints are asynchronous for scalability, using `async fn` and `.await` with Actix-web. -->
 
 #### **Overview of Rust: History and Usage**
 
@@ -138,16 +260,6 @@ So, we have used a good amount of other languages throughout our times as CS maj
 - **Multi-Paradigm**: Rust supports both object-oriented and functional programming paradigms, allowing flexibility in code organization and composition.
 - **Ownership and Borrowing**: Rust’s unique ownership system enforces memory safety at compile time, preventing data races and many classes of bugs without a garbage collector.
 - **Type System**: Rust is statically typed, with powerful generics and type inference, making code both safe and expressive.
-
-#### **Comparison with Other Languages (Terminology)**
-
-| Feature           | Rust                  | Python             | Java               | C                   |
-|-------------------|----------------------|--------------------|--------------------|---------------------|
-| Memory Management | Ownership/Borrowing  | Garbage Collector  | Garbage Collector  | Manual              |
-| Concurrency       | Fearless, safe       | GIL limits         | Threads, less safe | Manual, error-prone |
-| Typing            | Static, inferred     | Dynamic            | Static             | Static              |
-| Safety            | Compile-time checks  | Runtime errors     | Runtime errors     | Unsafe by default   |
-| Performance       | Near C/C++           | Slower             | Good, but overhead | Fast                |
 
 ---
 
