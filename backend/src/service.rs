@@ -1,4 +1,7 @@
-use crate::structs::{ShortenedUrl, User};
+use crate::{
+    routes::shorten::shorten_url,
+    structs::{ShortenedUrl, User},
+};
 use chrono::{DateTime, Duration, Utc};
 use nanoid::nanoid;
 use sqlx::PgPool;
@@ -6,7 +9,7 @@ use uuid::Uuid;
 
 // take in the user, orig url, custom url (we randomize if not provided),
 // expiry (if not provided then no expiration)
-pub async fn create_or_update_url(
+pub async fn create_url(
     user: &User,
     original_url: &String,
     custom_url: Option<String>,
@@ -128,6 +131,85 @@ pub async fn create_or_update_url(
 
     Ok(short_url)
 }
+
+// updates a url (by id) for the user
+pub async fn update_url(
+    user: &User,
+    id: &String,
+    pool: &PgPool,
+    original_url: &String,
+    custom_url: Option<&String>,
+    expiration_sec: Option<i64>,
+) -> Result<ShortenedUrl, std::io::Error> {
+    let cur_time = Utc::now();
+
+    // see if expiry provided, if so calculate the expiry date
+    let expiry_date = expiration_sec.map(|secs| cur_time + Duration::seconds(secs));
+
+    let final_custom_url = match custom_url {
+        Some(url) if !url.is_empty() => {
+            // Validate the custom URL, make sure it doesn't contain slashes or be 'auth'
+            if url.contains('/') || url == "auth" {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    "Custom URL cannot contain slashes or be 'auth'",
+                ));
+            }
+            url.to_owned()
+        }
+        _ => {
+            // Generate a unique short URL using nanoid
+            let mut short_url;
+            loop {
+                short_url = nanoid!(5); // 5 characters should be enough for uniqueness
+                let exists: (i64,) =
+                    sqlx::query_as("SELECT COUNT(*) FROM shortened_urls WHERE short_url = $1")
+                        .bind(&short_url)
+                        .fetch_one(pool)
+                        .await
+                        .map_err(|e| {
+                            std::io::Error::new(std::io::ErrorKind::Other, e.to_string())
+                        })?;
+
+                if exists.0 == 0 {
+                    break;
+                }
+            }
+            short_url
+        }
+    };
+
+    // Create new URL
+    let id = Uuid::parse_str(&id)
+        .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "Invalid UUID"))?;
+    let cur_time = Utc::now();
+
+    let short_url = sqlx::query_as::<_, ShortenedUrl>(
+        r#"
+  UPDATE shortened_urls 
+  SET 
+      short_url = $1,
+      original_url = $2,
+      updated_at = $3,
+      expiry_date = $4,
+      owner = $5
+  WHERE id = $6
+  RETURNING *
+"#,
+    )
+    .bind(final_custom_url)
+    .bind(original_url)
+    .bind(cur_time)
+    .bind(expiry_date)
+    .bind(user.id)
+    .bind(id)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+
+    Ok(short_url)
+}
+
 // deletes a url (by id) for the user
 pub async fn delete_url(user: &User, id: &String, pool: &PgPool) -> Result<(), std::io::Error> {
     let uuid = Uuid::parse_str(id)
