@@ -23,7 +23,7 @@ pub(crate) struct ShortenedUrl {
     pub updated_at: DateTime<Utc>,
 
     pub owner: Uuid,    // foreign key. the id of the person that owns this
-    pub redirects: u64, // use count
+    pub redirects: i32, // use count
 }
 
 #[derive(Serialize)]
