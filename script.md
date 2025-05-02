@@ -309,10 +309,4 @@ Here's a quick look at our codebase structure:
 
 #### **Conclusion**
 
-Rust enabled us to build a robust, safe, and high-performance backend for our URL shortener. Its unique memory model, strong typing, and concurrency support made it a great fit for this project. Thank you for watching-we’re happy to answer any questions!
-
----
-
-**[End of Script]**
-
-*Each speaker should cover their section in about 6 minutes and 40 seconds to ensure equal participation and stay within the 20-minute limit.*
+Rust enabled us to build a robust, safe, and high-performance backend for our URL shortener. Its unique memory model, strong typing, and concurrency support made it a great fit for this project. Thanks for watching!
