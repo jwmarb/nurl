@@ -4,15 +4,13 @@ mod structs;
 mod utils;
 use actix_files::{Files, NamedFile};
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use constants::POSTGRESQL_URL;
 use constants::{FRONTEND_DIST, HOST, PORT};
 use dotenv::dotenv;
 use routes::health::health;
-use utils::connect_db;
-use utils::disconnect_db;
+use routes::register::register;
+use sqlx::postgres::PgPoolOptions;
 use utils::is_production;
-// database stuff
-// use sqlx::postgres::PgPoolOptions;
-use serde_json::json;
 
 #[get("/")]
 async fn development() -> impl Responder {
@@ -29,15 +27,27 @@ async fn main() -> std::io::Result<()> {
 
     // database stuff
     // connecting to database
-    let pool = connect_db()
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .acquire_timeout(std::time::Duration::from_secs(5))
+        .connect(*POSTGRESQL_URL)
         .await
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
 
     // queries to the database
     sqlx::query(
         r#"
+        CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+    "#,
+    )
+    .execute(&pool)
+    .await
+    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+
+    sqlx::query(
+        r#"
         CREATE TABLE IF NOT EXISTS users (
-            id UUID PRIMARY KEY,
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             username TEXT NOT NULL,
             password TEXT NOT NULL
         );
@@ -47,12 +57,14 @@ async fn main() -> std::io::Result<()> {
     .await
     .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
 
-    // disconnecting
-    disconnect_db(pool).await;
+    let pool_data = web::Data::new(pool);
 
     // server stuff
-    let server = HttpServer::new(|| {
-        let mut app = App::new().service(health);
+    let server = HttpServer::new(move || {
+        let mut app = App::new()
+            .service(health)
+            .service(register)
+            .app_data(pool_data.clone());
 
         if is_production() {
             // Serve the static HTML files if we are in production
