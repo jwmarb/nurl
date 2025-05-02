@@ -16,6 +16,7 @@ import {
   Select,
   Radio,
   InputNumber,
+  Tag,
 } from 'antd';
 import {
   LinkOutlined,
@@ -24,6 +25,8 @@ import {
   UserOutlined,
   EditOutlined,
   DeleteOutlined,
+  CalendarOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
 import './App.css';
 import { useAuthStore } from '$/store/auth';
@@ -55,8 +58,8 @@ type UrlItem = {
   original: string;
   shortened: string;
   customPath: string;
-  createdAt: string;
-  expiresAt?: string;
+  createdAt: Date;
+  expiresAt?: Date;
   clicks: number;
 };
 
@@ -107,8 +110,8 @@ export default function App() {
     original: url.original_url,
     shortened: `${FRONTEND_URL}/${url.short_url}`,
     customPath: url.short_url,
-    createdAt: new Date(url.created_at).toLocaleString(),
-    expiresAt: url.expiry_date ? new Date(url.expiry_date).toLocaleString() : undefined,
+    createdAt: new Date(url.created_at),
+    expiresAt: url.expiry_date ? new Date(url.expiry_date) : undefined,
     clicks: url.redirects,
   });
 
@@ -328,28 +331,50 @@ export default function App() {
       dataIndex: 'original',
       key: 'original',
       ellipsis: true,
-      render: (text: string) => <Text ellipsis={{ tooltip: text }}>{text}</Text>,
+      render: (text: string) => (
+        <Text ellipsis={{ tooltip: text }} style={{ maxWidth: '8rem' }}>
+          {text}
+        </Text>
+      ),
     },
     {
       title: 'Short URL',
       dataIndex: 'shortened',
       key: 'shortened',
       render: (text: string) => (
-        <a href={text} target='_blank' rel='noopener noreferrer'>
+        <Typography.Link href={text} target='_blank' rel='noopener noreferrer'>
           {text}
-        </a>
+        </Typography.Link>
       ),
     },
     {
       title: 'Created',
       dataIndex: 'createdAt',
       key: 'createdAt',
+      render: (text: Date) => (
+        <Tag icon={<CalendarOutlined />} color='default'>
+          {text.toLocaleString()}
+        </Tag>
+      ),
     },
     {
       title: 'Expires',
       dataIndex: 'expiresAt',
       key: 'expiresAt',
-      render: (text: string) => text || 'Never',
+      render: (text: Date) =>
+        text ? (
+          dayjs().isAfter(text) ? (
+            <Tag icon={<ClockCircleOutlined />} color='red'>
+              Expired
+            </Tag>
+          ) : (
+            <Tag icon={<CalendarOutlined />} color='blue'>
+              {text.toLocaleString() || 'Never'}
+            </Tag>
+          )
+        ) : (
+          <Tag color='default'>Never</Tag>
+        ),
     },
     {
       title: 'Clicks',
