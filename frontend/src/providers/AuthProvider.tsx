@@ -10,26 +10,40 @@ export default function AuthProvider(props: React.PropsWithChildren) {
   const isAlive = useBackendStore((state) => state.isAlive);
   const setToken = useAuthStore((state) => state.setToken);
   const token = useAuthStore((state) => state.token);
+  const isHydrated = useAuthStore((state) => state.isHydrated);
+  const [loading, setLoading] = React.useState<boolean>(true);
 
   React.useEffect(() => {
     if (!isAlive) {
       return;
     }
 
-    api.isAuthenticated().then((isAuthenticated) => {
-      if (!isAuthenticated) {
-        setToken(null);
-      }
-    });
-  }, [isAlive, navigate, setToken]);
+    if (isHydrated) {
+      api
+        .isAuthenticated(token)
+        .then((isAuthenticated) => {
+          if (!isAuthenticated) {
+            setToken(null);
+          }
+        })
+        .finally(() => setLoading(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAlive, navigate, setToken, isHydrated]);
 
   React.useEffect(() => {
-    if (token == null) {
-      navigate('/auth');
-    } else {
-      navigate('/');
+    if (isHydrated) {
+      if (token == null) {
+        navigate('/auth');
+      } else {
+        navigate('/');
+      }
     }
-  }, [navigate, token]);
+  }, [navigate, token, isHydrated]);
+
+  if (loading) {
+    return null;
+  }
 
   return <>{children}</>;
 }

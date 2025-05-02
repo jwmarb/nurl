@@ -51,9 +51,11 @@ class API {
     }
   }
 
-  public async isAuthenticated(): Promise<boolean> {
+  public async isAuthenticated(token: string | null): Promise<boolean> {
     try {
-      const response = await this.api.get('/api/auth');
+      const response = await this.api.get('/api/auth', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       return response.status === StatusCodes.OK;
     } catch {
       return false;
