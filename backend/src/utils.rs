@@ -1,4 +1,4 @@
-use crate::constants::{ENVIRONMENT, POSTGRESQL_URL, PRODUCTION_ENV};
+use crate::constants::{DATABASE_URL, ENVIRONMENT, PRODUCTION_ENV};
 use sqlx::{
     postgres::{PgPoolOptions, PgQueryResult},
     Pool, Postgres,
@@ -10,12 +10,22 @@ pub fn is_production() -> bool {
 }
 
 pub async fn init_db() -> Result<Pool<Postgres>, std::io::Error> {
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .acquire_timeout(std::time::Duration::from_secs(5))
-        .connect(*POSTGRESQL_URL)
-        .await
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+    let pool = loop {
+        match PgPoolOptions::new()
+            .max_connections(5)
+            .acquire_timeout(std::time::Duration::from_secs(1))
+            .connect(DATABASE_URL.as_str())
+            .await
+        {
+            Ok(pool) => break pool,
+            Err(_) => {
+                println!("Could not connect to database. Retrying...");
+                tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
+            }
+        }
+    };
+
+    println!("Successfully formed a DB connection");
 
     let pool_ref = &pool;
 
