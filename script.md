@@ -66,7 +66,7 @@ So, we have used a good amount of other languages throughout our times as CS maj
 - **Type System:** Rust is statically and strongly typed with compile-time checks; Prolog is dynamically typed and untyped at the variable level, relying on unification and pattern matching.
 - **Paradigm:** Rust is multi-paradigm (imperative, functional, some OOP); Prolog is a declarative, logic programming language focused on expressing relations and rules.
 - **Memory Management:** Rust uses ownership and borrowing for memory safety without a garbage collector; Prolog abstracts memory management, typically using garbage collection.
-- **Concurrency:** Rust has built-in, thread-safe concurrency; Prolog implementations may offer concurrency but it is not a core language feature.
+- **Concurrency:** Rust has built-in, thread-safe concurrency; Prolog doesn't have it as a core feature
 - **<u>OPTIONAL FOR EXTRA YAP TIME:</u> Syntax:** Rust uses curly-brace, C-like syntax; Prolog uses facts, rules, and queries in a syntax based on logic and relations.
 - **Performance:** Rust is compiled to machine code and highly performant; Prolog is typically interpreted or compiled to bytecode for a virtual machine, and is slower for most procedural tasks.
 - **Use Cases:** Rust is used for systems, backend, and performance-critical applications; Prolog excels in AI, symbolic reasoning, theorem proving, and language parsing.
