@@ -3,12 +3,17 @@ use serde::Serialize;
 use uuid::Uuid;
 
 // User model, holds their id + username + password
-#[derive(sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow)]
 pub(crate) struct User {
     pub id: Uuid,
     pub username: String,
-
     pub password: String, // bcrypt hash password
+}
+
+#[derive(Serialize)]
+pub(crate) struct Claims {
+    pub username: String,
+    pub exp: usize,
 }
 
 // The URL shortener model itself

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Form, Input, Button, Typography, Card, message, Space, Avatar, Table, Modal, Popconfirm } from 'antd';
+import { Layout, Form, Input, Button, Typography, Card, Space, Avatar, Table, Modal, Popconfirm } from 'antd';
 import {
   LinkOutlined,
   CopyOutlined,
@@ -9,6 +9,8 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons';
 import './App.css';
+import { useAuthStore } from '$/store/auth';
+import { useMessage } from '$/providers/theme/theme';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -28,11 +30,10 @@ export default function App() {
   const [editForm] = Form.useForm();
   const [shortenedUrls, setShortenedUrls] = React.useState<UrlItem[]>([]);
   const [isEditModalVisible, setIsEditModalVisible] = React.useState(false);
+  const setToken = useAuthStore((s) => s.setToken);
   const [editingUrl, setEditingUrl] = React.useState<UrlItem | null>(null);
+  const message = useMessage();
 
-  React.useEffect(() => {
-    console.log(FRONTEND_URL);
-  }, []);
   const onFinish = (values: { url: string; customPath: string }) => {
     // In a real app, this would make an API call to your backend
     const path = values.customPath || 'backendHandleThisPlz';
@@ -59,7 +60,8 @@ export default function App() {
 
   const handleLogout = () => {
     // This would contain actual logout logic in a real app
-    message.success('Logout button clicked');
+    setToken(null);
+    message.success('Successfully logged out');
   };
 
   const handleDelete = (id: string) => {

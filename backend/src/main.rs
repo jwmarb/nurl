@@ -7,8 +7,8 @@ use actix_files::{Files, NamedFile};
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use constants::{FRONTEND_DIST, HOST, PORT};
 use dotenv::dotenv;
-use routes::health::health;
 use routes::register::register;
+use routes::{auth::login, health::health};
 use utils::{init_db, is_production};
 
 #[get("/")]
@@ -30,6 +30,7 @@ async fn main() -> std::io::Result<()> {
         let mut app = App::new()
             .service(health)
             .service(register)
+            .service(login)
             .app_data(pool.clone());
 
         if is_production() {

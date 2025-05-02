@@ -1,6 +1,7 @@
-use std::path::PathBuf;
-
 use once_cell::sync::Lazy;
+use rand::Rng;
+
+use std::path::PathBuf;
 pub(crate) static PORT: Lazy<u16> = Lazy::new(|| {
     option_env!("PORT")
         .unwrap_or("8080")
@@ -17,7 +18,25 @@ pub(crate) static FRONTEND_DIST: Lazy<PathBuf> = Lazy::new(|| {
         .expect("Invalid path format")
 });
 
+pub(crate) static NURL_SECRET: Lazy<String> = Lazy::new(|| {
+    option_env!("NURL_SECRET")
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| {
+            let mut rng = rand::rng();
+            let secret: String = (0..32) // Generate a 32-character secret
+                .map(|_| {
+                    let choices = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                    let index = rng.random_range(0..choices.len());
+                    choices.chars().nth(index).unwrap()
+                })
+                .collect();
+            secret
+        })
+});
+
 pub(crate) static PRODUCTION_ENV: &str = "production";
 
-pub(crate) static POSTGRESQL_URL: Lazy<&str> = 
-    Lazy::new(|| option_env!("POSTGRESQL_URL").unwrap_or("postgresql://postgres:postgres@localhost:5432/postgres"));
+pub(crate) static POSTGRESQL_URL: Lazy<&str> = Lazy::new(|| {
+    option_env!("POSTGRESQL_URL")
+        .unwrap_or("postgresql://postgres:postgres@localhost:5432/postgres")
+});

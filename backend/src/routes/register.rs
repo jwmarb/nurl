@@ -1,6 +1,6 @@
 use actix_web::{post, web, HttpResponse, Responder};
 use bcrypt::{hash, DEFAULT_COST};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
 use crate::structs::APIResponse;
@@ -11,19 +11,57 @@ struct RegisterForm {
     confirm_password: String,
 }
 
+#[derive(Serialize)]
+struct RegisterFormInputTarget {
+    target_field: String,
+}
+
 #[post("/api/register")]
 async fn register(form: web::Json<RegisterForm>, pool: web::Data<PgPool>) -> impl Responder {
     let form = form.into_inner();
 
-    if form.username.is_empty() || form.password.is_empty() {
-        return HttpResponse::BadRequest().json(APIResponse::error_message(
-            "Username and password cannot be empty".to_string(),
+    if form.username.is_empty() {
+        return HttpResponse::BadRequest().json(APIResponse::error(
+            "Username cannot be empty".to_string(),
+            Some(RegisterFormInputTarget {
+                target_field: "username".to_string(),
+            }),
+        ));
+    }
+
+    if form.username.len() < 3 {
+        return HttpResponse::BadRequest().json(APIResponse::error(
+            "Username must be at least 3 characters long".to_string(),
+            Some(RegisterFormInputTarget {
+                target_field: "username".to_string(),
+            }),
+        ));
+    }
+
+    if form.password.is_empty() {
+        return HttpResponse::BadRequest().json(APIResponse::error(
+            "Password cannot be empty".to_string(),
+            Some(RegisterFormInputTarget {
+                target_field: "password".to_string(),
+            }),
+        ));
+    }
+
+    if form.password.len() < 6 {
+        return HttpResponse::BadRequest().json(APIResponse::error(
+            "Password must be at least 6 characters long".to_string(),
+            Some(RegisterFormInputTarget {
+                target_field: "password".to_string(),
+            }),
         ));
     }
 
     if form.password != form.confirm_password {
-        return HttpResponse::BadRequest().json(APIResponse::error_message(
+        return HttpResponse::BadRequest().json(APIResponse::error(
             "Passwords do not match".to_string(),
+            Some(RegisterFormInputTarget {
+                target_field: "confirm_password".to_string(),
+            }),
         ));
     }
 
@@ -41,8 +79,11 @@ async fn register(form: web::Json<RegisterForm>, pool: web::Data<PgPool>) -> imp
     };
 
     if exists.0 > 0 {
-        return HttpResponse::BadRequest().json(APIResponse::error_message(
+        return HttpResponse::BadRequest().json(APIResponse::error(
             "Username already exists".to_string(),
+            Some(RegisterFormInputTarget {
+                target_field: "username".to_string(),
+            }),
         ));
     }
 
