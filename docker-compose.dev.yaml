@@ -1,13 +1,13 @@
 services:
   postgres:
+    container_name: postgres
     image: postgres:latest
     ports:
       - 5432:5432
-    volumes:
-      - ./postgresql:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: postgres
   valkey:
+    container_name: valkey
     image: valkey/valkey:latest
     ports:
       - 5433:6379
