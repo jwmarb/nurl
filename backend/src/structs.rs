@@ -22,7 +22,7 @@ pub(crate) struct ShortenedUrl {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 
-    pub owner: String,  // foreign key. the id of the person that owns this
+    pub owner: Uuid,    // foreign key. the id of the person that owns this
     pub redirects: u64, // use count
 }
 

@@ -1,21 +1,20 @@
-use crate::structs::{ShortenedUrl, ShortenError, User};
+use crate::structs::{ShortenedUrl, User};
 use chrono::{DateTime, Duration, Utc};
 use uuid::Uuid;
 
-
 // take in the user, orig url, custom url (we randomize if not provided),
-// expiry (if not provided then no expiration) 
-pub fn create_or_update_url (
+// expiry (if not provided then no expiration)
+pub fn create_or_update_url(
     user: &User,
     original_url: &str,
     custom_url: Option<&str>,
     expiration_sec: Option<u64>,
-) -> Result<ShortenedUrl, ShortenError> {
+) -> Result<ShortenedUrl, std::io::Error> {
     // TODO IMPLEMENT UPDATING FEATURE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    let cur_time =  Utc::now();
+    let cur_time = Utc::now();
 
-    let id =  Uuid::new_v4().to_string();
+    let id = Uuid::new_v4();
 
     // see if expiry provided, if so calulate the expiry date
     let expiry_date = if let Some(secs) = expiration_sec {
@@ -53,9 +52,8 @@ pub fn create_or_update_url (
     Ok(short_url)
 }
 
-
 // deletes a url (by id) for the user
-pub fn delete_url(user: &User, id: &str) -> Result<(), ShortenError> {
+pub fn delete_url(user: &User, id: &str) -> Result<(), std::io::Error> {
     // rmeove the url in the db
 
     // check that it is owned by the user, then if so -> delete.s
@@ -63,13 +61,13 @@ pub fn delete_url(user: &User, id: &str) -> Result<(), ShortenError> {
 }
 
 // returns a list of the shortened urls for a given user
-pub fn list_urls(user: &User) -> Result<Vec<ShortenedUrl>, ShortenError> {
+pub fn list_urls(user: &User) -> Result<Vec<ShortenedUrl>, std::io::Error> {
     // query db and return the list
     Ok(Vec::new())
 }
 
 // redirect shortened url to the actual one
-pub fn resolve_url(custom_url: &str) -> Result<String, ShortenError> {
+pub fn resolve_url(custom_url: &str) -> Result<String, std::io::Error> {
     // goto database, check expiry, return the redirect count and actual url, etc...
-    Ok(format!("insert_actual_orig_url_here for: '{}'", customUrl))
+    Ok(format!("insert_actual_orig_url_here for: '{}'", custom_url))
 }
