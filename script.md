@@ -1,10 +1,6 @@
-## Rust Video Presentation Script
+# **Part 1: Introduction, Team, and Why Rust**
 
----
-
-### **Part 1: Introduction, Team, and Why Rust**
-
-**Speaker 1 (0:00–6:40)**
+## **Speaker 1 (0:00–6:40)**
 
 Hello everyone, and welcome to our presentation on our Rust-based URL shortener project, nurl. I'm [Name], and joining me are [Name] and [Name]. Each of us will be presenting for about five minutes, covering different aspects of our project and the Rust language.
 
@@ -91,40 +87,40 @@ Absolutely! Here are concise, bullet-point Rust comparisons for **Prolog, Standa
 
 ### Rust vs. Prolog
 
-- **Type System:** Rust is statically and strongly typed with compile-time checks; Prolog is dynamically typed and untyped at the variable level, relying on unification and pattern matching[12].
-- **Paradigm:** Rust is multi-paradigm (imperative, functional, some OOP); Prolog is a declarative, logic programming language focused on expressing relations and rules[12].
+- **Type System:** Rust is statically and strongly typed with compile-time checks; Prolog is dynamically typed and untyped at the variable level, relying on unification and pattern matching.
+- **Paradigm:** Rust is multi-paradigm (imperative, functional, some OOP); Prolog is a declarative, logic programming language focused on expressing relations and rules.
 - **Memory Management:** Rust uses ownership and borrowing for memory safety without a garbage collector; Prolog abstracts memory management, typically using garbage collection.
-- **Concurrency:** Rust has built-in, thread-safe concurrency; Prolog implementations may offer concurrency but it is not a core language feature[11].
-- **Syntax:** Rust uses curly-brace, C-like syntax; Prolog uses facts, rules, and queries in a syntax based on logic and relations[12].
+- **Concurrency:** Rust has built-in, thread-safe concurrency; Prolog implementations may offer concurrency but it is not a core language feature.
+- **Syntax:** Rust uses curly-brace, C-like syntax; Prolog uses facts, rules, and queries in a syntax based on logic and relations.
 - **Performance:** Rust is compiled to machine code and highly performant; Prolog is typically interpreted or compiled to bytecode for a virtual machine, and is slower for most procedural tasks.
-- **Use Cases:** Rust is used for systems, backend, and performance-critical applications; Prolog excels in AI, symbolic reasoning, theorem proving, and language parsing[12][17].
-- **Ecosystem:** Rust’s ecosystem is modern, growing, and focused on systems and web; Prolog’s ecosystem is specialized, with mature tools for logic programming and AI[11][18].
+- **Use Cases:** Rust is used for systems, backend, and performance-critical applications; Prolog excels in AI, symbolic reasoning, theorem proving, and language parsing.
+- **Ecosystem:** Rust’s ecosystem is modern, growing, and focused on systems and web; Prolog’s ecosystem is specialized, with mature tools for logic programming and AI.
 
 ---
 
 ### Rust vs. Standard ML
 
-- **Type System:** Both are statically and strongly typed, but Rust emphasizes ownership and lifetimes, while Standard ML uses a Hindley-Milner type system with type inference[14].
-- **Paradigm:** Rust is multi-paradigm (imperative, functional, OOP); Standard ML is primarily functional, with strong support for algebraic data types and pattern matching[14].
+- **Type System:** Both are statically and strongly typed, but Rust emphasizes ownership and lifetimes, while Standard ML uses a Hindley-Milner type system with type inference.
+- **Paradigm:** Rust is multi-paradigm (imperative, functional, OOP); Standard ML is primarily functional, with strong support for algebraic data types and pattern matching.
 - **Memory Management:** Rust enforces memory safety through ownership and borrowing without garbage collection; Standard ML uses automatic garbage collection.
 - **Concurrency:** Rust has built-in concurrency and prevents data races at compile time; Standard ML does not have built-in concurrency primitives.
 - **Syntax:** Rust uses curly-brace, C-like syntax; Standard ML uses a functional, expression-based syntax.
-- **Performance:** Rust compiles to efficient machine code using LLVM; Standard ML is compiled, but typically not as optimized for systems-level performance[14].
-- **Use Cases:** Rust is used for systems, backend, and embedded programming; Standard ML is used in academia, language research, and for teaching functional programming concepts[14].
-- **Ecosystem:** Rust’s ecosystem is modern and growing, especially for systems and web; Standard ML’s ecosystem is smaller and focused on research and education[14].
+- **Performance:** Rust compiles to efficient machine code using LLVM; Standard ML is compiled, but typically not as optimized for systems-level performance.
+- **Use Cases:** Rust is used for systems, backend, and embedded programming; Standard ML is used in academia, language research, and for teaching functional programming concepts.
+- **Ecosystem:** Rust’s ecosystem is modern and growing, especially for systems and web; Standard ML’s ecosystem is smaller and focused on research and education.
 
 ---
 
 ### Rust vs. Chapel
 
-- **Type System:** Both are statically typed; Rust’s type system emphasizes safety and lifetimes, while Chapel’s is designed for parallelism and ease of use[15].
-- **Paradigm:** Rust is multi-paradigm (imperative, functional, OOP); Chapel is designed for parallel programming, especially for high-performance computing (HPC)[15].
-- **Memory Management:** Rust uses ownership and borrowing for memory safety without garbage collection; Chapel uses garbage collection and allows more implicit memory management[15].
-- **Concurrency/Parallelism:** Rust provides safe concurrency with threads and async; Chapel is built around parallelism and distributed computing, using Partitioned Global Address Space (PGAS)[15].
-- **Syntax:** Rust uses curly-brace, C-like syntax; Chapel has a more Python-like, readable syntax with explicit parallel constructs[15].
+- **Type System:** Both are statically typed; Rust’s type system emphasizes safety and lifetimes, while Chapel’s is designed for parallelism and ease of use.
+- **Paradigm:** Rust is multi-paradigm (imperative, functional, OOP); Chapel is designed for parallel programming, especially for high-performance computing (HPC).
+- **Memory Management:** Rust uses ownership and borrowing for memory safety without garbage collection; Chapel uses garbage collection and allows more implicit memory management.
+- **Concurrency/Parallelism:** Rust provides safe concurrency with threads and async; Chapel is built around parallelism and distributed computing, using Partitioned Global Address Space (PGAS).
+- **Syntax:** Rust uses curly-brace, C-like syntax; Chapel has a more Python-like, readable syntax with explicit parallel constructs.
 - **Performance:** Rust is compiled for high performance and control; Chapel is also compiled and optimized for parallel and distributed workloads.
-- **Use Cases:** Rust is used for systems, backend, and embedded development; Chapel is used for scientific computing, HPC, and data-parallel tasks[15].
-- **Ecosystem:** Rust’s ecosystem is broad and modern; Chapel’s ecosystem is specialized for HPC and parallel computing[15].
+- **Use Cases:** Rust is used for systems, backend, and embedded development; Chapel is used for scientific computing, HPC, and data-parallel tasks.
+- **Ecosystem:** Rust’s ecosystem is broad and modern; Chapel’s ecosystem is specialized for HPC and parallel computing.
 
 ---
 
@@ -139,41 +135,35 @@ Absolutely! Here are concise, bullet-point Rust comparisons for **Prolog, Standa
 - **Use Cases:** Rust is used for systems, backend, and embedded programming; MIPS assembly is used for embedded systems, OS kernels, and educational purposes.
 - **Ecosystem:** Rust’s ecosystem is modern and growing; MIPS assembly’s ecosystem is minimal, mostly educational and for low-level programming.
 
-
-<!-- - **Rust vs. Python**: Rust is compiled and much faster, with strict compile-time checks for memory safety. Python is easier to write but slower and less safe for concurrent, memory-sensitive tasks
-- **Rust vs. Java**: Rust offers better performance and memory safety by eliminating garbage collection. Java is easier for rapid development but can suffer from garbage collection pauses and less predictable performance[14].
-- **Rust vs. C**: Rust provides similar low-level control but with safer abstractions, preventing common bugs like buffer overflows and dangling pointers[21].
-- **Rust vs. HTML/CSS**: HTML/CSS is for web content structure and presentation, not backend logic or memory management like rust is.  -->
-
 ---
 
-### **Part 2: Rust Language Tutorial and Paradigms**
+# **Part 2: Rust Language Tutorial and Paradigms**
 
-**Speaker 2 (6:40–13:20)**
+## **Speaker 2 (6:40–13:20)**
 
 #### **Brief Tutorial: Rust Basics Used in Our Project**
 
-- **Variables and Types**: Rust uses `let` to declare variables, which are immutable by default. Use `mut` for mutability. Types are inferred or can be specified explicitly[11].
+- **Variables and Types**: Rust uses `let` to declare variables, which are immutable by default. Use `mut` for mutability. Types are inferred or can be specified explicitly.
 - **Functions**: Declared with `fn`. Example:  
   ```rust
   fn main() {
       println!("Hello, World!");
   }
   ```
-- **Structs and Traits**: Used for modeling data and behavior. For example, our `User` and `ShortenedUrl` structs in `structs.rs` model users and URLs, respectively[9].
+- **Structs and Traits**: Used for modeling data and behavior. For example, our `User` and `ShortenedUrl` structs in `structs.rs` model users and URLs, respectively.
 - **Error Handling**: Rust uses the `Result` and `Option` types for error handling, ensuring errors are handled explicitly.
 - **Async/Await**: Our endpoints are asynchronous for scalability, using `async fn` and `.await` with Actix-web.
 
 #### **Overview of Rust: History and Usage**
 
-- **History**: Rust was started by Graydon Hoare in 2006 as a side project at Mozilla, aiming to create a safer alternative to C/C++ for systems programming. Mozilla officially sponsored it in 2009, and version 1.0 was released in 2015[11][19].
-- **Usage**: Rust is used for performance-critical backend systems, operating systems, embedded devices, and increasingly in web backend services[17][19].
-- **Community**: Rust has a growing, vibrant community with strong documentation and support[19].
+- **History**: Rust was started by Graydon Hoare in 2006 as a side project at Mozilla, aiming to create a safer alternative to C/C++ for systems programming. Mozilla officially sponsored it in 2009, and version 1.0 was released in 2015.
+- **Usage**: Rust is used for performance-critical backend systems, operating systems, embedded devices, and increasingly in web backend services.
+- **Community**: Rust has a growing, vibrant community with strong documentation and support.
 
 #### **Paradigms and Features**
 
-- **Multi-Paradigm**: Rust supports both object-oriented and functional programming paradigms, allowing flexibility in code organization and composition[12].
-- **Ownership and Borrowing**: Rust’s unique ownership system enforces memory safety at compile time, preventing data races and many classes of bugs without a garbage collector[21].
+- **Multi-Paradigm**: Rust supports both object-oriented and functional programming paradigms, allowing flexibility in code organization and composition.
+- **Ownership and Borrowing**: Rust’s unique ownership system enforces memory safety at compile time, preventing data races and many classes of bugs without a garbage collector.
 - **Type System**: Rust is statically typed, with powerful generics and type inference, making code both safe and expressive.
 
 #### **Comparison with Other Languages (Terminology)**
@@ -188,17 +178,17 @@ Absolutely! Here are concise, bullet-point Rust comparisons for **Prolog, Standa
 
 ---
 
-### **Part 3: Program Walkthrough, Features, and Demo**
+# **Part 3: Program Walkthrough, Features, and Demo**
 
-**Speaker 3 (13:20–20:00)**
+## **Speaker 3 (13:20–20:00)**
 
 #### **Program Overview and Code Understanding**
 
-- **Startup**: The app initializes environment variables and database tables on startup (`main.rs`, `utils.rs`)[6][10].
-- **Registration/Login**: Users register with a username and password, which is hashed using bcrypt. Login verifies credentials and issues a JWT token (`register.rs`, `auth.rs`)[1][3].
-- **JWT Middleware**: Each request to protected endpoints is checked for a valid JWT, extracting the username and ensuring only authenticated users can access or modify their own URLs (`middleware.rs`)[7].
-- **Shorten/Delete URL**: Authenticated users can create short URLs, optionally specifying a custom path and expiration. The service ensures uniqueness and handles both creation and updating (`shorten.rs`, `service.rs`)[4][8].
-- **Data Models**: The `User` and `ShortenedUrl` structs define our database schema and API responses (`structs.rs`)[9].
+- **Startup**: The app initializes environment variables and database tables on startup (`main.rs`, `utils.rs`).
+- **Registration/Login**: Users register with a username and password, which is hashed using bcrypt. Login verifies credentials and issues a JWT token (`register.rs`, `auth.rs`).
+- **JWT Middleware**: Each request to protected endpoints is checked for a valid JWT, extracting the username and ensuring only authenticated users can access or modify their own URLs (`middleware.rs`).
+- **Shorten/Delete URL**: Authenticated users can create short URLs, optionally specifying a custom path and expiration. The service ensures uniqueness and handles both creation and updating (`shorten.rs`, `service.rs`).
+- **Data Models**: The `User` and `ShortenedUrl` structs define our database schema and API responses (`structs.rs`).
 
 #### **Interesting Rust Features in Our Program**
 
