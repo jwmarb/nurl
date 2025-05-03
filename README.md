@@ -6,6 +6,10 @@
 
 > **Note:** nurl is **not production-ready**. Authentication needs further development, as currently, anyone can register and create unlimited shortened URLs. This project is intended for educational purposes only.
 
+## Live Demo
+
+You can view the live demo at [here](https://nurl.jwmarb.com/)
+
 ## Project Structure
 
 ```
