@@ -71,7 +71,7 @@ type CreateUpdateUrlData = {
 };
 
 export default function App() {
-  const FRONTEND_URL = typeof location === 'undefined' ? BACKEND_URL : 'http://localhost:8080';
+  const FRONTEND_URL = typeof location === 'undefined' ? BACKEND_URL : `${location.protocol}//${location.host}`;
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
   const [isEditModalVisible, setIsEditModalVisible] = React.useState(false);
