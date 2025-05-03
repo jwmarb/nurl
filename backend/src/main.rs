@@ -1,3 +1,4 @@
+/// Module declarations for the application
 mod constants;
 mod middleware;
 mod routes;
@@ -19,12 +20,13 @@ use routes::shorten::{
 use routes::{auth::login, health::health};
 use utils::{init_db, is_production};
 
+/// Development mode endpoint that informs users about the separate frontend application
 #[get("/")]
 async fn development() -> impl Responder {
     HttpResponse::Ok().body("This is running the backend only. The frontend is a separate application. To serve frontend files, you must build the frontend and move the directory containing the built files into the backend.")
 }
 
-// Serve "/"
+/// Serves the main index.html file in production mode
 #[get("/")]
 async fn serve_index() -> impl Responder {
     let path = format!(
@@ -34,7 +36,7 @@ async fn serve_index() -> impl Responder {
     fs::NamedFile::open(path)
 }
 
-// Serve "/auth"
+/// Serves the authentication page in production mode
 #[get("/auth")]
 async fn serve_auth() -> impl Responder {
     let path = format!(
@@ -44,7 +46,7 @@ async fn serve_auth() -> impl Responder {
     fs::NamedFile::open(path)
 }
 
-// Serve "/auth/register"
+/// Serves the registration page in production mode
 #[get("/auth/register")]
 async fn serve_auth_register() -> impl Responder {
     let path = format!(
@@ -54,6 +56,7 @@ async fn serve_auth_register() -> impl Responder {
     fs::NamedFile::open(path)
 }
 
+/// Serves static assets (images, CSS, JS) in production mode
 #[get("/assets/{filename:.*}")]
 async fn serve_assets(path: actix_web::web::Path<String>) -> impl Responder {
     let filename = path.into_inner();
@@ -65,6 +68,15 @@ async fn serve_assets(path: actix_web::web::Path<String>) -> impl Responder {
     fs::NamedFile::open(path)
 }
 
+/// Main entry point of the application
+/// 
+/// This function:
+/// 1. Initializes environment variables
+/// 2. Sets up the database connection pool
+/// 3. Configures CORS settings
+/// 4. Sets up the HTTP server with all routes
+/// 5. Handles static file serving in production mode
+/// 6. Starts the server on the configured host and port
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();

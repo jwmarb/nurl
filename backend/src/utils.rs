@@ -4,11 +4,25 @@ use sqlx::{
     Pool, Postgres,
 };
 
+/// Checks if the application is running in production environment
+/// 
+/// # Returns
+/// Boolean indicating if the environment is production
 #[inline]
 pub fn is_production() -> bool {
     *ENVIRONMENT == PRODUCTION_ENV
 }
 
+/// Initializes the database connection and sets up required tables
+/// 
+/// This function:
+/// 1. Establishes a connection to the PostgreSQL database
+/// 2. Creates the pgcrypto extension if it doesn't exist
+/// 3. Creates the users table if it doesn't exist
+/// 4. Creates the shortened_urls table if it doesn't exist
+/// 
+/// # Returns
+/// Result containing the database connection pool
 pub async fn init_db() -> Result<Pool<Postgres>, std::io::Error> {
     let pool = loop {
         match PgPoolOptions::new()
@@ -68,6 +82,12 @@ pub async fn init_db() -> Result<Pool<Postgres>, std::io::Error> {
     Ok(pool)
 }
 
+/// Initializes a test database with a test user
+/// 
+/// This function is only available in test builds
+/// 
+/// # Returns
+/// Database connection pool with test data
 #[cfg(test)]
 pub async fn init_test_db() -> Pool<Postgres> {
     let pool = init_db().await.unwrap();
@@ -88,6 +108,15 @@ pub async fn init_test_db() -> Pool<Postgres> {
 #[cfg(test)]
 use crate::structs::User;
 
+/// Retrieves the test user from the database
+/// 
+/// This function is only available in test builds
+/// 
+/// # Arguments
+/// * `pool` - Database connection pool
+/// 
+/// # Returns
+/// The test user
 #[cfg(test)]
 pub async fn get_test_user(pool: &Pool<Postgres>) -> User {
     sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = $1")

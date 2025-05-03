@@ -4,18 +4,42 @@ use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
 use crate::structs::APIResponse;
+
+/// Registration form data structure
 #[derive(Deserialize, Serialize)]
 struct RegisterForm {
+    /// Username for the new account
     username: String,
+    /// Password for the new account
     password: String,
+    /// Password confirmation to ensure correct entry
     confirm_password: String,
 }
 
+/// Structure for identifying which form field caused an error
 #[derive(Serialize, Deserialize)]
 struct RegisterFormInputTarget {
+    /// The name of the form field that failed validation
     target_field: String,
 }
 
+/// Handles user registration
+/// 
+/// This endpoint:
+/// 1. Validates the registration form data
+/// 2. Checks if the username is already taken
+/// 3. Hashes the password
+/// 4. Creates the new user account
+/// 
+/// # Arguments
+/// * `form` - The registration form data
+/// * `pool` - Database connection pool
+/// 
+/// # Returns
+/// HTTP response:
+/// - 200 OK if registration is successful
+/// - 400 Bad Request if validation fails (with specific error messages)
+/// - 500 Internal Server Error if database operations fail
 #[post("/register")]
 async fn register(form: web::Json<RegisterForm>, pool: web::Data<PgPool>) -> impl Responder {
     let form = form.into_inner();
@@ -110,6 +134,7 @@ async fn register(form: web::Json<RegisterForm>, pool: web::Data<PgPool>) -> imp
     }
 }
 
+/// Test module for registration endpoint
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -117,6 +142,12 @@ mod tests {
     use actix_web::{http::StatusCode, test, web, App};
     use uuid::Uuid;
 
+    /// Tests successful user registration
+    /// 
+    /// Verifies that:
+    /// 1. The registration request succeeds
+    /// 2. The user is created in the database
+    /// 3. The password is properly hashed
     #[actix_rt::test]
     async fn test_register_success() {
         let pool = init_test_db().await;
@@ -175,6 +206,12 @@ mod tests {
             .expect("Failed to delete test user");
     }
 
+    /// Tests registration with empty username
+    /// 
+    /// Verifies that:
+    /// 1. The request fails with 400 Bad Request
+    /// 2. The correct error message is returned
+    /// 3. The target field is correctly identified
     #[actix_rt::test]
     async fn test_register_empty_username() {
         let pool = init_test_db().await;
@@ -221,6 +258,12 @@ mod tests {
         }
     }
 
+    /// Tests registration with username shorter than 3 characters
+    /// 
+    /// Verifies that:
+    /// 1. The request fails with 400 Bad Request
+    /// 2. The correct error message is returned
+    /// 3. The target field is correctly identified
     #[actix_rt::test]
     async fn test_register_short_username() {
         let pool = init_test_db().await;
@@ -270,6 +313,12 @@ mod tests {
         }
     }
 
+    /// Tests registration with empty password
+    /// 
+    /// Verifies that:
+    /// 1. The request fails with 400 Bad Request
+    /// 2. The correct error message is returned
+    /// 3. The target field is correctly identified
     #[actix_rt::test]
     async fn test_register_empty_password() {
         let pool = init_test_db().await;
@@ -316,6 +365,12 @@ mod tests {
         }
     }
 
+    /// Tests registration with password shorter than 6 characters
+    /// 
+    /// Verifies that:
+    /// 1. The request fails with 400 Bad Request
+    /// 2. The correct error message is returned
+    /// 3. The target field is correctly identified
     #[actix_rt::test]
     async fn test_register_short_password() {
         let pool = init_test_db().await;
@@ -365,6 +420,12 @@ mod tests {
         }
     }
 
+    /// Tests registration with mismatched passwords
+    /// 
+    /// Verifies that:
+    /// 1. The request fails with 400 Bad Request
+    /// 2. The correct error message is returned
+    /// 3. The target field is correctly identified
     #[actix_rt::test]
     async fn test_register_password_mismatch() {
         let pool = init_test_db().await;
@@ -411,6 +472,12 @@ mod tests {
         }
     }
 
+    /// Tests registration with duplicate username
+    /// 
+    /// Verifies that:
+    /// 1. The request fails with 400 Bad Request
+    /// 2. The correct error message is returned
+    /// 3. The target field is correctly identified
     #[actix_rt::test]
     async fn test_register_duplicate_username() {
         let pool = init_test_db().await;

@@ -7,21 +7,47 @@ use crate::{
     structs::{APIResponse, User},
 };
 
+/// Request body for creating a new shortened URL
 #[derive(Deserialize)]
 struct ShortenURLRequest {
+    /// The original URL to be shortened
     original_url: String,
+    /// Optional custom path for the shortened URL
     custom_path: Option<String>,
+    /// Optional expiration time in seconds
     expiration: Option<i64>,
 }
 
+/// Request body for updating an existing shortened URL
 #[derive(Deserialize)]
 struct UpdateURLRequest {
+    /// The ID of the URL to update
     id: String,
+    /// The new original URL
     original_url: String,
+    /// Optional new custom path
     custom_path: Option<String>,
+    /// Optional new expiration time in seconds
     expiration: Option<i64>,
 }
 
+/// Creates a new shortened URL
+/// 
+/// This endpoint:
+/// 1. Verifies the user's authentication
+/// 2. Creates a new shortened URL
+/// 3. Returns the created URL data
+/// 
+/// # Arguments
+/// * `body` - The request body containing URL details
+/// * `pool` - Database connection pool
+/// * `username` - The authenticated user's username
+/// 
+/// # Returns
+/// HTTP response:
+/// - 200 OK with the created URL data if successful
+/// - 401 Unauthorized if user not found
+/// - 500 Internal Server Error if creation fails
 #[post("/shorten")]
 pub async fn shorten_url(
     body: web::Json<ShortenURLRequest>,
@@ -52,6 +78,22 @@ pub async fn shorten_url(
     }
 }
 
+/// Deletes a shortened URL
+/// 
+/// This endpoint:
+/// 1. Verifies the user's authentication
+/// 2. Deletes the specified URL if owned by the user
+/// 
+/// # Arguments
+/// * `id` - The ID of the URL to delete
+/// * `pool` - Database connection pool
+/// * `username` - The authenticated user's username
+/// 
+/// # Returns
+/// HTTP response:
+/// - 204 No Content if successful
+/// - 401 Unauthorized if user not found
+/// - 500 Internal Server Error if deletion fails
 #[delete("/shorten/{id}")]
 pub async fn delete_shortened_url(
     id: web::Path<String>,
@@ -76,6 +118,21 @@ pub async fn delete_shortened_url(
     }
 }
 
+/// Lists all shortened URLs for the authenticated user
+/// 
+/// This endpoint:
+/// 1. Verifies the user's authentication
+/// 2. Retrieves all URLs owned by the user
+/// 
+/// # Arguments
+/// * `pool` - Database connection pool
+/// * `username` - The authenticated user's username
+/// 
+/// # Returns
+/// HTTP response:
+/// - 200 OK with the list of URLs if successful
+/// - 401 Unauthorized if user not found
+/// - 500 Internal Server Error if retrieval fails
 #[get("/shorten")]
 pub async fn get_shortened_urls(
     pool: web::Data<PgPool>,
@@ -98,6 +155,22 @@ pub async fn get_shortened_urls(
     }
 }
 
+/// Updates an existing shortened URL
+/// 
+/// This endpoint:
+/// 1. Verifies the user's authentication
+/// 2. Updates the specified URL if owned by the user
+/// 
+/// # Arguments
+/// * `pool` - Database connection pool
+/// * `username` - The authenticated user's username
+/// * `url_data` - The new URL data
+/// 
+/// # Returns
+/// HTTP response:
+/// - 200 OK with the updated URL data if successful
+/// - 401 Unauthorized if user not found
+/// - 500 Internal Server Error if update fails
 #[put("/shorten")]
 pub async fn update_shortened_url(
     pool: web::Data<PgPool>,

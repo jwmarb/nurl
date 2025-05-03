@@ -7,12 +7,26 @@ use nanoid::nanoid;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-// Helper function to calculate expiry date from seconds
+/// Calculates the expiry date based on the number of seconds from now
+/// 
+/// # Arguments
+/// * `expiration_sec` - Optional number of seconds until expiration
+/// 
+/// # Returns
+/// Optional DateTime representing when the URL will expire
 fn calculate_expiry_date(expiration_sec: Option<i64>) -> Option<chrono::DateTime<Utc>> {
     expiration_sec.map(|secs| Utc::now() + Duration::seconds(secs))
 }
 
-// Helper function to validate original URL
+/// Validates that the original URL is not pointing to the application domain
+/// to prevent redirect loops
+/// 
+/// # Arguments
+/// * `original_url` - The URL to validate
+/// * `domain` - The application domain to check against
+/// 
+/// # Returns
+/// Result indicating if the URL is valid
 fn validate_original_url(original_url: &str, domain: String) -> Result<(), std::io::Error> {
     if original_url.contains(&domain) {
         return Err(std::io::Error::new(
@@ -23,7 +37,13 @@ fn validate_original_url(original_url: &str, domain: String) -> Result<(), std::
     Ok(())
 }
 
-// Helper function to validate custom URL
+/// Validates that a custom URL is valid (no slashes and not 'auth')
+/// 
+/// # Arguments
+/// * `custom_url` - The custom URL to validate
+/// 
+/// # Returns
+/// Result indicating if the custom URL is valid
 fn validate_custom_url(custom_url: &str) -> Result<(), std::io::Error> {
     if custom_url.contains('/') || custom_url == "auth" {
         return Err(std::io::Error::new(
@@ -34,7 +54,13 @@ fn validate_custom_url(custom_url: &str) -> Result<(), std::io::Error> {
     Ok(())
 }
 
-// Helper function to generate a unique short URL
+/// Generates a unique short URL that doesn't exist in the database
+/// 
+/// # Arguments
+/// * `pool` - Database connection pool
+/// 
+/// # Returns
+/// Result containing the generated short URL
 async fn generate_unique_short_url(pool: &PgPool) -> Result<String, std::io::Error> {
     let mut short_url;
     loop {
@@ -53,7 +79,14 @@ async fn generate_unique_short_url(pool: &PgPool) -> Result<String, std::io::Err
     Ok(short_url)
 }
 
-// Helper function to determine final short URL based on custom URL or generated one
+/// Determines the final short URL to use, either a custom one or a generated one
+/// 
+/// # Arguments
+/// * `custom_url` - Optional custom URL provided by the user
+/// * `pool` - Database connection pool
+/// 
+/// # Returns
+/// Result containing the final short URL to use
 async fn determine_short_url(
     custom_url: Option<String>,
     pool: &PgPool,
@@ -67,7 +100,14 @@ async fn determine_short_url(
     }
 }
 
-// Helper function to insert a new URL into the database
+/// Inserts a new shortened URL into the database
+/// 
+/// # Arguments
+/// * `shortened_url` - The shortened URL to insert
+/// * `pool` - Database connection pool
+/// 
+/// # Returns
+/// Result indicating success or failure
 async fn insert_url_to_db(
     shortened_url: &ShortenedUrl,
     pool: &PgPool,
@@ -91,8 +131,17 @@ async fn insert_url_to_db(
     Ok(())
 }
 
-// take in the user, orig url, custom url (we randomize if not provided),
-// expiry (if not provided then no expiration)
+/// Creates a new shortened URL for a user
+/// 
+/// # Arguments
+/// * `user` - The user creating the URL
+/// * `original_url` - The original URL to shorten
+/// * `custom_url` - Optional custom short URL
+/// * `expiration_sec` - Optional number of seconds until expiration
+/// * `pool` - Database connection pool
+/// 
+/// # Returns
+/// Result containing the created ShortenedUrl
 pub async fn create_url(
     user: &User,
     original_url: &String,
@@ -129,13 +178,30 @@ pub async fn create_url(
     Ok(short_url)
 }
 
-// Helper function to parse UUID from string
+/// Parses a UUID from a string
+/// 
+/// # Arguments
+/// * `id` - The string to parse as a UUID
+/// 
+/// # Returns
+/// Result containing the parsed UUID
 fn parse_uuid(id: &str) -> Result<Uuid, std::io::Error> {
     Uuid::parse_str(id)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, e.to_string()))
 }
 
-// updates a url (by id) for the user
+/// Updates an existing shortened URL
+/// 
+/// # Arguments
+/// * `user` - The user updating the URL
+/// * `id` - The ID of the URL to update
+/// * `pool` - Database connection pool
+/// * `original_url` - The new original URL
+/// * `custom_url` - Optional new custom short URL
+/// * `expiration_sec` - Optional new expiration time in seconds
+/// 
+/// # Returns
+/// Result containing the updated ShortenedUrl
 pub async fn update_url(
     user: &User,
     id: &String,
@@ -190,7 +256,15 @@ pub async fn update_url(
     Ok(short_url)
 }
 
-// deletes a url (by id) for the user
+/// Deletes a shortened URL
+/// 
+/// # Arguments
+/// * `user` - The user deleting the URL
+/// * `id` - The ID of the URL to delete
+/// * `pool` - Database connection pool
+/// 
+/// # Returns
+/// Result indicating success or failure
 pub async fn delete_url(user: &User, id: &String, pool: &PgPool) -> Result<(), std::io::Error> {
     let uuid = parse_uuid(id)?;
 
@@ -212,7 +286,14 @@ pub async fn delete_url(user: &User, id: &String, pool: &PgPool) -> Result<(), s
     Ok(())
 }
 
-// returns a list of the shortened urls for a given user
+/// Lists all shortened URLs for a user
+/// 
+/// # Arguments
+/// * `user` - The user whose URLs to list
+/// * `pool` - Database connection pool
+/// 
+/// # Returns
+/// Result containing a vector of the user's ShortenedUrls
 pub async fn list_urls(user: &User, pool: &PgPool) -> Result<Vec<ShortenedUrl>, std::io::Error> {
     let urls =
         sqlx::query_as("SELECT * FROM shortened_urls WHERE owner = $1 ORDER BY created_at DESC")
