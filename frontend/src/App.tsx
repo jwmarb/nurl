@@ -75,9 +75,12 @@ export default function App() {
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
   const [isEditModalVisible, setIsEditModalVisible] = React.useState(false);
+  const [isReplaceModalVisible, setIsReplaceModalVisible] = React.useState(false);
   const setToken = useAuthStore((s) => s.setToken);
   const token = useAuthStore((s) => s.token);
   const [editingUrl, setEditingUrl] = React.useState<UrlItem | null>(null);
+  const [duplicateUrl, setDuplicateUrl] = React.useState<UrlItem | null>(null);
+  const [pendingUrlData, setPendingUrlData] = React.useState<CreateUpdateUrlData | null>(null);
   const message = useMessage();
   const [expirationType, setExpirationType] = React.useState<'never' | 'date' | 'duration'>('never');
   const [editExpirationType, setEditExpirationType] = React.useState<'never' | 'date' | 'duration'>('never');
@@ -155,14 +158,14 @@ export default function App() {
       return response.data;
     },
     onSuccess: () => {
-      message.success('URL shortened successfully!');
+      message.success('URL updated successfully!');
       form.resetFields();
       setExpirationType('never');
       setCustomDuration(false);
       queryClient.invalidateQueries({ queryKey: ['shortenedUrls'] });
     },
     onError: (error) => {
-      message.error('Failed to shorten URL: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      message.error('Failed to update URL: ' + (error instanceof Error ? error.message : 'Unknown error'));
     },
   });
 
@@ -217,6 +220,10 @@ export default function App() {
     return undefined;
   };
 
+  const checkForDuplicateUrl = (originalUrl: string): UrlItem | null => {
+    return shortenedUrls.find((url) => url.original === originalUrl) || null;
+  };
+
   const onFinish = (values: {
     url: string;
     customPath: string;
@@ -233,11 +240,49 @@ export default function App() {
       values.customDurationUnit
     );
 
-    createUrlMutation.mutate({
+    const urlData = {
       original_url: values.url,
       custom_path: values.customPath || undefined,
       expiration,
-    });
+    };
+
+    // Check if this URL already exists for the user
+    const duplicate = checkForDuplicateUrl(values.url);
+    if (duplicate) {
+      // Save the data and the duplicate URL for later use
+      setDuplicateUrl(duplicate);
+      setPendingUrlData(urlData);
+      // Show confirmation modal
+      setIsReplaceModalVisible(true);
+    } else {
+      // No duplicate, create new URL
+      createUrlMutation.mutate(urlData);
+    }
+  };
+
+  const handleReplaceUrl = () => {
+    if (duplicateUrl && pendingUrlData) {
+      // Update existing URL instead of creating a new one
+      updateUrlMutation.mutate(
+        {
+          id: duplicateUrl.id,
+          ...pendingUrlData,
+        },
+        {
+          onSuccess: () => {
+            setIsReplaceModalVisible(false);
+            setDuplicateUrl(null);
+            setPendingUrlData(null);
+          },
+        }
+      );
+    }
+  };
+
+  const handleCancelReplace = () => {
+    setIsReplaceModalVisible(false);
+    setDuplicateUrl(null);
+    setPendingUrlData(null);
   };
 
   const copyToClipboard = (text: string) => {
@@ -315,6 +360,12 @@ export default function App() {
         );
       }
     });
+  };
+
+  const handleAddUrlAnyways = () => {
+    if (pendingUrlData) {
+      createUrlMutation.mutate(pendingUrlData);
+    }
   };
 
   const handleDurationChange = (value: string) => {
@@ -527,6 +578,7 @@ export default function App() {
         </div>
       </Content>
 
+      {/* Edit Modal */}
       <Modal
         title='Edit URL'
         open={isEditModalVisible}
@@ -535,7 +587,7 @@ export default function App() {
           <Button key='cancel' onClick={handleEditCancel}>
             Cancel
           </Button>,
-          <Button key='submit' type='primary' onClick={handleEditSubmit} loading={createUrlMutation.isPending}>
+          <Button key='submit' type='primary' onClick={handleEditSubmit} loading={updateUrlMutation.isPending}>
             Save
           </Button>,
         ]}>
@@ -614,6 +666,45 @@ export default function App() {
             )}
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Replace URL Modal */}
+      <Modal
+        title='URL Already Exists'
+        open={isReplaceModalVisible}
+        onCancel={handleCancelReplace}
+        footer={[
+          <Button key='cancel' onClick={handleCancelReplace}>
+            Cancel
+          </Button>,
+          <Button key='replace' type='primary' onClick={handleReplaceUrl} loading={updateUrlMutation.isPending}>
+            Replace Existing URL
+          </Button>,
+          ...(duplicateUrl?.customPath !== pendingUrlData?.custom_path
+            ? [
+                <Button
+                  key='add'
+                  type='primary'
+                  ghost
+                  onClick={handleAddUrlAnyways}
+                  loading={createUrlMutation.isPending}>
+                  Add anyways
+                </Button>,
+              ]
+            : []),
+        ]}>
+        <p>You already have a shortened URL for this original URL:</p>
+        {duplicateUrl && (
+          <div style={{ margin: '15px 0' }}>
+            <p>
+              <strong>Original URL:</strong> {duplicateUrl.original}
+            </p>
+            <p>
+              <strong>Short URL:</strong> {duplicateUrl.shortened}
+            </p>
+          </div>
+        )}
+        <p>Would you like to replace the existing shortened URL with your new settings?</p>
       </Modal>
     </Layout>
   );

@@ -63,41 +63,6 @@ pub async fn create_url(
         }
     };
 
-    // Check if URL already exists for this user
-    let existing_url: Option<ShortenedUrl> =
-        sqlx::query_as("SELECT * FROM shortened_urls WHERE original_url = $1 AND owner = $2")
-            .bind(original_url)
-            .bind(user.id)
-            .fetch_optional(pool)
-            .await
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-
-    if let Some(mut existing) = existing_url {
-        // Update existing URL
-        let short_url = existing.short_url.clone();
-        let expiry_date = existing.expiry_date;
-        let updated_at = existing.updated_at;
-        let id = existing.id;
-
-        sqlx::query(
-            "UPDATE shortened_urls SET short_url = $1, expiry_date = $2, updated_at = $3 WHERE id = $4"
-        )
-        .bind(short_url)
-        .bind(expiry_date)
-        .bind(updated_at)
-        .bind(id)
-        .execute(pool)
-        .await
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-
-        // Update the existing struct with new values
-        existing.short_url = final_custom_url;
-        existing.expiry_date = expiry_date;
-        existing.updated_at = cur_time;
-
-        return Ok(existing);
-    }
-
     // Create new URL
     let id = Uuid::new_v4();
     let short_url = ShortenedUrl {
