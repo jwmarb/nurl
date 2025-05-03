@@ -1,5 +1,6 @@
 services:
   nurl:
+    restart: unless-stopped
     container_name: nurl
     build: .
     ports:
@@ -15,6 +16,7 @@ services:
     networks:
       - nurlapp
   postgres:
+    restart: unless-stopped
     container_name: postgres
     image: postgres:latest
     ports:
