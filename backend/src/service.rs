@@ -1,8 +1,8 @@
 use crate::{
-    routes::shorten::shorten_url,
+    constants::APP_DOMAIN,
     structs::{ShortenedUrl, User},
 };
-use chrono::{DateTime, Duration, Utc};
+use chrono::{Duration, Utc};
 use nanoid::nanoid;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -20,6 +20,14 @@ pub async fn create_url(
 
     // see if expiry provided, if so calculate the expiry date
     let expiry_date = expiration_sec.map(|secs| cur_time + Duration::seconds(secs));
+
+    // Check if original url is NOT an invalid
+    if original_url.contains(&(*APP_DOMAIN)) {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Operation not permitted to prevent redirect loops to self. Please use a different URL.",
+        ));
+    }
 
     // Check if short url name provided. Otherwise generate a random one
     let final_custom_url = match custom_url {
@@ -243,36 +251,4 @@ pub async fn list_urls(user: &User, pool: &PgPool) -> Result<Vec<ShortenedUrl>, 
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
 
     Ok(urls)
-}
-
-// redirect shortened url to the actual one
-pub async fn resolve_url(custom_url: &str, pool: &PgPool) -> Result<String, std::io::Error> {
-    let url: Option<ShortenedUrl> =
-        sqlx::query_as("SELECT * FROM shortened_urls WHERE short_url = $1")
-            .bind(custom_url)
-            .fetch_optional(pool)
-            .await
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-
-    let url =
-        url.ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, "URL not found"))?;
-
-    // Check if URL has expired
-    if let Some(expiry) = url.expiry_date {
-        if Utc::now() > expiry {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::NotFound,
-                "URL has expired",
-            ));
-        }
-    }
-
-    // Increment redirect count
-    sqlx::query("UPDATE shortened_urls SET redirects = redirects + 1 WHERE id = $1")
-        .bind(url.id)
-        .execute(pool)
-        .await
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-
-    Ok(url.original_url)
 }

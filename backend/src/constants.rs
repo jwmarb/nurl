@@ -13,11 +13,15 @@ pub(crate) static HOST: Lazy<String> =
 pub(crate) static ENVIRONMENT: Lazy<String> =
     Lazy::new(|| std::env::var("ENVIRONMENT").unwrap_or("development".to_string()));
 pub(crate) static FRONTEND_DIST: Lazy<PathBuf> = Lazy::new(|| {
-    option_env!("FRONTEND_DIST")
-        .unwrap_or("./dist")
+    std::env::var("FRONTEND_DIST")
+        .unwrap_or("./dist".to_string())
         .parse::<PathBuf>()
         .expect("Invalid path format")
 });
+
+// this is a separate thing of itself and is NOT related with PORT and HOST. this is strictly for production use when there are actual domains
+pub(crate) static APP_DOMAIN: Lazy<String> =
+    Lazy::new(|| std::env::var("DOMAIN").unwrap_or(format!("localhost:{}", *PORT)));
 
 pub(crate) static NURL_SECRET: Lazy<String> = Lazy::new(|| {
     option_env!("NURL_SECRET")
