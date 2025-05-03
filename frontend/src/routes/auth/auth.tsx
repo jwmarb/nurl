@@ -25,7 +25,7 @@ export default function Auth() {
     setLoginError(false);
     setTimeout(async () => {
       try {
-        const response = await api.login(values.username, values.password, values.remember);
+        const response = await api.login(values.username.trim(), values.password, values.remember);
         if (response.error != null) {
           setLoginError(true);
         } else {
