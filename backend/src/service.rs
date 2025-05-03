@@ -86,7 +86,7 @@ async fn insert_url_to_db(
   .bind(shortened_url.redirects)
   .execute(pool)
   .await
-  .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+  .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "A shortened URL already exists. Please use a different shortened URL."))?;
 
     Ok(())
 }
