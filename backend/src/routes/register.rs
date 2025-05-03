@@ -115,7 +115,6 @@ mod tests {
     use super::*;
     use crate::utils::init_test_db;
     use actix_web::{http::StatusCode, test, web, App};
-    use serde_json::json;
     use uuid::Uuid;
 
     #[actix_rt::test]
