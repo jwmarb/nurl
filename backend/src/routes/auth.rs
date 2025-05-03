@@ -10,19 +10,32 @@ use crate::{
     structs::{APIResponse, Claims, User},
 };
 
+/// Login form data structure
 #[derive(Deserialize, Clone)]
 pub struct LoginForm {
+    /// Username for login
     pub username: String,
+    /// Password for login
     pub password: String,
+    /// Whether to remember the user for a longer period
     pub remember_me: bool,
 }
 
+/// JWT token response structure
 #[derive(Serialize)]
 pub struct TokenResponse {
+    /// The generated JWT token
     pub token: String,
 }
 
 /// Finds a user by username in the database
+/// 
+/// # Arguments
+/// * `username` - The username to search for
+/// * `db` - Database connection pool
+/// 
+/// # Returns
+/// Result containing the User if found, or a database error
 async fn find_user(username: &str, db: &PgPool) -> Result<User, sqlx::Error> {
     sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = $1")
         .bind(username)
@@ -30,12 +43,26 @@ async fn find_user(username: &str, db: &PgPool) -> Result<User, sqlx::Error> {
         .await
 }
 
-/// Validates user password
+/// Validates a password against its hash
+/// 
+/// # Arguments
+/// * `password` - The plain text password to validate
+/// * `hash` - The bcrypt hash to compare against
+/// 
+/// # Returns
+/// Result containing a boolean indicating if the password matches
 fn validate_password(password: &str, hash: &str) -> Result<bool, bcrypt::BcryptError> {
     verify(password, hash)
 }
 
 /// Generates a JWT token for the user
+/// 
+/// # Arguments
+/// * `username` - The username to include in the token
+/// * `remember_me` - Whether to create a longer-lived token
+/// 
+/// # Returns
+/// Result containing the generated token string
 fn generate_token(
     username: &str,
     remember_me: bool,
@@ -56,7 +83,13 @@ fn generate_token(
     )
 }
 
-/// Validates a token and returns the claims if valid
+/// Validates a JWT token and returns its claims
+/// 
+/// # Arguments
+/// * `token` - The JWT token to validate
+/// 
+/// # Returns
+/// Result containing the token claims if valid
 fn validate_token(token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
     let decoded = decode::<Claims>(
         token,
@@ -67,7 +100,13 @@ fn validate_token(token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
     Ok(decoded.claims)
 }
 
-/// Extract token from Authorization header
+/// Extracts a JWT token from the Authorization header
+/// 
+/// # Arguments
+/// * `req` - The HTTP request containing the Authorization header
+/// 
+/// # Returns
+/// Option containing the token string if found
 fn extract_token_from_header(req: &HttpRequest) -> Option<String> {
     req.headers()
         .get("Authorization")
@@ -76,6 +115,22 @@ fn extract_token_from_header(req: &HttpRequest) -> Option<String> {
         .map(|auth_str| auth_str[7..].to_string())
 }
 
+/// Handles user login and token generation
+/// 
+/// This endpoint:
+/// 1. Verifies the user exists
+/// 2. Validates the password
+/// 3. Generates a JWT token
+/// 
+/// # Arguments
+/// * `form` - The login form data
+/// * `db` - Database connection pool
+/// 
+/// # Returns
+/// HTTP response:
+/// - 200 OK with the JWT token if successful
+/// - 422 Unprocessable Entity if credentials are invalid
+/// - 500 Internal Server Error if token generation fails
 #[post("/auth")]
 pub async fn login(form: web::Json<LoginForm>, db: web::Data<PgPool>) -> impl Responder {
     // Find user in database
@@ -119,6 +174,19 @@ pub async fn login(form: web::Json<LoginForm>, db: web::Data<PgPool>) -> impl Re
     HttpResponse::Ok().json(APIResponse::data(TokenResponse { token: jwt }))
 }
 
+/// Validates a user's authentication token
+/// 
+/// This endpoint:
+/// 1. Extracts the token from the Authorization header
+/// 2. Validates the token
+/// 
+/// # Arguments
+/// * `req` - The HTTP request containing the token
+/// 
+/// # Returns
+/// HTTP response:
+/// - 200 OK if the token is valid
+/// - 401 Unauthorized if the token is missing or invalid
 #[get("/auth")]
 async fn is_authenticated(req: HttpRequest) -> impl Responder {
     // Extract token from headers
@@ -138,6 +206,7 @@ async fn is_authenticated(req: HttpRequest) -> impl Responder {
     }
 }
 
+/// Test module for authentication endpoints
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -147,7 +216,7 @@ mod tests {
     use chrono::Utc;
     use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 
-    // Token validation tests
+    /// Tests token extraction from Authorization header
     #[test]
     fn test_extract_token_from_header() {
         // Create a mock request with an Authorization header
@@ -172,6 +241,7 @@ mod tests {
         assert_eq!(token, None);
     }
 
+    /// Tests password validation against bcrypt hash
     #[test]
     fn test_validate_password() {
         // Generate a password hash
@@ -189,6 +259,7 @@ mod tests {
         assert!(!result.unwrap());
     }
 
+    /// Tests JWT token generation with different expiration times
     #[test]
     fn test_generate_token() {
         let username = "test_user";
@@ -228,6 +299,7 @@ mod tests {
         assert!(claims.exp <= month_from_now + 5); // Allow 5 seconds margin
     }
 
+    /// Tests JWT token validation
     #[test]
     fn test_validate_token() {
         let username = "test_user";

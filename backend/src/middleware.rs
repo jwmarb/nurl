@@ -12,6 +12,13 @@ use std::{
 
 use crate::{constants::NURL_SECRET, structs::Claims};
 
+/// Middleware for extracting and validating JWT tokens from requests
+/// 
+/// This middleware:
+/// 1. Extracts the JWT token from the Authorization header
+/// 2. Validates the token
+/// 3. Extracts the username from the token
+/// 4. Adds the username to the request extensions if valid
 pub struct ExtractUsernameJWT;
 
 impl<S, B> Transform<S, ServiceRequest> for ExtractUsernameJWT
@@ -32,6 +39,7 @@ where
     }
 }
 
+/// The actual middleware implementation that processes requests
 pub struct ExtractUsernameMiddleware<S> {
     service: Rc<S>,
 }
@@ -59,7 +67,16 @@ where
     }
 }
 
-/// Extract token from Authorization header and process it
+/// Processes the Authorization header of a request
+/// 
+/// This function:
+/// 1. Extracts the token from the header
+/// 2. Validates the token
+/// 3. Extracts the username
+/// 4. Adds the username to request extensions if valid
+/// 
+/// # Arguments
+/// * `req` - The incoming service request
 pub fn process_auth_header(req: &ServiceRequest) {
     if let Some(token) = extract_token_from_header(req) {
         if let Some(username) = validate_and_extract_username(&token) {
@@ -68,7 +85,13 @@ pub fn process_auth_header(req: &ServiceRequest) {
     }
 }
 
-/// Extract the JWT token from the Authorization header
+/// Extracts the JWT token from the Authorization header
+/// 
+/// # Arguments
+/// * `req` - The incoming service request
+/// 
+/// # Returns
+/// Option containing the token string if found and valid
 pub fn extract_token_from_header(req: &ServiceRequest) -> Option<String> {
     req.headers()
         .get(header::AUTHORIZATION)
@@ -77,7 +100,13 @@ pub fn extract_token_from_header(req: &ServiceRequest) -> Option<String> {
         .map(|s| s[7..].to_string()) // Skip "Bearer " prefix
 }
 
-/// Validate the JWT token and extract username
+/// Validates a JWT token and extracts the username from it
+/// 
+/// # Arguments
+/// * `token` - The JWT token to validate
+/// 
+/// # Returns
+/// Option containing the username if the token is valid
 pub fn validate_and_extract_username(token: &str) -> Option<String> {
     let secret = NURL_SECRET.as_bytes();
 

@@ -2,17 +2,26 @@ use actix_web::{get, HttpResponse, Responder};
 
 use crate::structs::APIResponse;
 
+/// Health check endpoint
+/// 
+/// This endpoint is used to verify that the service is running and responding to requests.
+/// It returns a simple "alive" message in the response data.
+/// 
+/// # Returns
+/// HTTP response with status 200 and a JSON body containing "alive" in the data field
 #[get("/health")]
 async fn health() -> impl Responder {
     HttpResponse::Ok().json(APIResponse::data("alive"))
 }
 
+/// Test module for the health endpoint
 #[cfg(test)]
 mod tests {
     use super::*;
     use actix_web::{http::StatusCode, test, App};
     use serde_json::Value;
 
+    /// Tests that the health endpoint returns the expected response
     #[actix_rt::test]
     async fn test_health_endpoint() {
         // Create test app with the handler
@@ -35,6 +44,7 @@ mod tests {
         assert_eq!(json["data"], "alive");
     }
 
+    /// Tests that the health endpoint rejects non-GET requests
     #[actix_rt::test]
     async fn test_health_endpoint_wrong_method() {
         // Create test app with the handler
@@ -48,6 +58,7 @@ mod tests {
         assert_eq!(resp.status(), StatusCode::NOT_FOUND);
     }
 
+    /// Tests that the health endpoint rejects requests to incorrect paths
     #[actix_rt::test]
     async fn test_health_endpoint_wrong_path() {
         // Create test app with the handler

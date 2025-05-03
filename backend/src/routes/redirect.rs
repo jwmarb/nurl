@@ -3,6 +3,23 @@ use sqlx::PgPool;
 
 use crate::structs::ShortenedUrl;
 
+/// Redirects a short URL to its original destination
+/// 
+/// This endpoint:
+/// 1. Looks up the short URL in the database
+/// 2. Checks if the URL has expired
+/// 3. Increments the redirect counter
+/// 4. Returns a 307 Temporary Redirect to the original URL
+/// 
+/// # Arguments
+/// * `pool` - Database connection pool
+/// * `short_path` - The short URL path to redirect from
+/// 
+/// # Returns
+/// HTTP response:
+/// - 307 Temporary Redirect with Location header if URL is valid
+/// - 404 Not Found if URL doesn't exist or has expired
+/// - 500 Internal Server Error if database update fails
 #[get("/{short_path}")]
 pub async fn redirect_to_original_url(
     pool: web::Data<PgPool>,
@@ -43,6 +60,7 @@ pub async fn redirect_to_original_url(
         .finish()
 }
 
+/// Test module for the redirect endpoint
 #[cfg(test)]
 mod tests {
 
@@ -53,7 +71,13 @@ mod tests {
     use chrono::{Duration, Utc};
     use uuid::Uuid;
 
-    // Your test functions here
+    /// Tests successful redirection of a valid short URL
+    /// 
+    /// This test:
+    /// 1. Creates a test short URL
+    /// 2. Makes a request to the redirect endpoint
+    /// 3. Verifies the redirect response
+    /// 4. Checks that the redirect counter was incremented
     #[actix_rt::test]
     async fn test_redirect_success() {
         let pool = init_test_db().await;
@@ -123,6 +147,10 @@ mod tests {
             .expect("Failed to delete test URL");
     }
 
+    /// Tests handling of non-existent short URLs
+    /// 
+    /// This test verifies that the endpoint returns a 404 response
+    /// when the short URL doesn't exist in the database
     #[actix_rt::test]
     async fn test_redirect_not_found() {
         let pool = init_test_db().await;
@@ -146,6 +174,12 @@ mod tests {
         assert_eq!(resp.status(), StatusCode::NOT_FOUND);
     }
 
+    /// Tests handling of expired short URLs
+    /// 
+    /// This test:
+    /// 1. Creates a short URL with an expired date
+    /// 2. Makes a request to the redirect endpoint
+    /// 3. Verifies that a 404 response is returned
     #[actix_rt::test]
     async fn test_redirect_expired() {
         let pool = init_test_db().await;
