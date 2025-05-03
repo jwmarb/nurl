@@ -21,9 +21,9 @@ WORKDIR /app
 
 RUN cargo build --release
 
-FROM debian:bookworm
+FROM debian:bookworm-slim
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y postgresql postgresql-client
+RUN apt-get update && apt-get upgrade -y
 RUN mkdir -p /app
 
 COPY --from=backend /app/target/release/backend /app
