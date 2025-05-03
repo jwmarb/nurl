@@ -34,7 +34,7 @@ import { useMessage } from '$/providers/theme/theme';
 import dayjs from 'dayjs';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api, { UpdateURLRequest } from '$/utils/api';
-import { BACKEND_URL } from '$/utils/constants';
+import { BACKEND_URL, FRONTEND_URL } from '$/utils/constants';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -71,7 +71,6 @@ type CreateUpdateUrlData = {
 };
 
 export default function App() {
-  const FRONTEND_URL = typeof location === 'undefined' ? BACKEND_URL : `${location.protocol}//${location.host}`;
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
   const [isEditModalVisible, setIsEditModalVisible] = React.useState(false);

@@ -40,7 +40,6 @@ class API {
   public async isAlive(signal?: AbortSignal): Promise<boolean> {
     try {
       const response = await this.api.get(`/health`, { signal });
-
       if (signal) {
         return signal.aborted && response.status === StatusCodes.OK;
       }
