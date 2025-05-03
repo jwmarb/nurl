@@ -34,7 +34,7 @@ import { useMessage } from '$/providers/theme/theme';
 import dayjs from 'dayjs';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api, { UpdateURLRequest } from '$/utils/api';
-import { BACKEND_URL, FRONTEND_URL } from '$/utils/constants';
+import { FRONTEND_URL } from '$/utils/constants';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
