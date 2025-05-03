@@ -42,3 +42,165 @@ pub async fn redirect_to_original_url(
         .append_header(("Location", original_url))
         .finish()
 }
+
+#[cfg(test)]
+mod tests {
+
+    use crate::utils::{get_test_user, init_test_db};
+
+    use super::*;
+    use actix_web::{http::StatusCode, test, web, App};
+    use chrono::{Duration, Utc};
+    use uuid::Uuid;
+
+    // Your test functions here
+    #[actix_rt::test]
+    async fn test_redirect_success() {
+        let pool = init_test_db().await;
+        let test_user = get_test_user(&pool).await;
+
+        // Set up test data with a unique short path
+        let test_id = Uuid::new_v4();
+        let short_path = format!(
+            "test_{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(6)
+                .collect::<String>()
+        );
+        let original_url = "https://example.com";
+
+        // Insert test data into the test database
+        sqlx::query(
+            "INSERT INTO shortened_urls (id, short_url, original_url, redirects, created_at, updated_at, owner) 
+           VALUES ($1, $2, $3, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $4)",
+        )
+        .bind(test_id)
+        .bind(&short_path)
+        .bind(original_url)
+        .bind(test_user.id)
+        .execute(&pool)
+        .await
+        .expect("Failed to insert test data");
+
+        // Create test app with the handler
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(pool.clone()))
+                .service(redirect_to_original_url),
+        )
+        .await;
+
+        // Send test request
+        let req = test::TestRequest::get()
+            .uri(&format!("/{}", short_path))
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+
+        // Assert the response
+        assert_eq!(resp.status(), StatusCode::TEMPORARY_REDIRECT);
+
+        let location = resp.headers().get("Location").unwrap();
+        assert_eq!(location, original_url);
+
+        // Verify the redirect count was incremented
+        let updated_url =
+            sqlx::query_as::<_, ShortenedUrl>("SELECT * FROM shortened_urls WHERE id = $1")
+                .bind(test_id)
+                .fetch_one(&pool)
+                .await
+                .expect("Failed to fetch updated url");
+
+        assert_eq!(updated_url.redirects, 1);
+
+        // Clean up the specific test data first to avoid foreign key constraint issues
+        sqlx::query("DELETE FROM shortened_urls WHERE id = $1")
+            .bind(test_id)
+            .execute(&pool)
+            .await
+            .expect("Failed to delete test URL");
+    }
+
+    #[actix_rt::test]
+    async fn test_redirect_not_found() {
+        let pool = init_test_db().await;
+
+        // Create test app with the handler
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(pool.clone()))
+                .service(redirect_to_original_url),
+        )
+        .await;
+
+        // Send test request with a non-existent short URL
+        let req = test::TestRequest::get()
+            .uri("/nonexistent-test-path")
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+
+        // Assert not found response
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[actix_rt::test]
+    async fn test_redirect_expired() {
+        let pool = init_test_db().await;
+        let test_user = get_test_user(&pool).await;
+
+        // Set up test data with an expired link and unique short path
+        let test_id = Uuid::new_v4();
+        let short_path = format!(
+            "expired_{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(6)
+                .collect::<String>()
+        );
+        let original_url = "https://example.com/expired";
+        let expired_date = Utc::now() - Duration::days(1); // 1 day ago
+
+        // Insert test data into the test database
+        sqlx::query(
+          "INSERT INTO shortened_urls (id, short_url, original_url, redirects, created_at, updated_at, expiry_date, owner) 
+           VALUES ($1, $2, $3, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $4, $5)"
+        )
+        .bind(test_id)
+        .bind(&short_path)
+        .bind(original_url)
+        .bind(expired_date)
+        .bind(test_user.id)
+        .execute(&pool)
+        .await
+        .expect("Failed to insert test data");
+
+        // Create test app with the handler
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(pool.clone()))
+                .service(redirect_to_original_url),
+        )
+        .await;
+
+        // Send test request
+        let req = test::TestRequest::get()
+            .uri(&format!("/{}", short_path))
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+
+        // Assert not found response for expired URL
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+
+        // Clean up the specific test data first to avoid foreign key constraint issues
+        sqlx::query("DELETE FROM shortened_urls WHERE id = $1")
+            .bind(test_id)
+            .execute(&pool)
+            .await
+            .expect("Failed to delete test URL");
+    }
+}

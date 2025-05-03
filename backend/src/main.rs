@@ -128,12 +128,3 @@ async fn main() -> std::io::Result<()> {
 
     server.run().await
 }
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn test_main() {
-        assert!(true);
-    }
-}

@@ -31,7 +31,7 @@ pub(crate) struct ShortenedUrl {
     pub redirects: i64, // use count
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct APIResponse {
     pub error: Option<String>,
     pub data: Option<serde_json::Value>,

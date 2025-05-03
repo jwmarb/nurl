@@ -67,3 +67,32 @@ pub async fn init_db() -> Result<Pool<Postgres>, std::io::Error> {
     .await?;
     Ok(pool)
 }
+
+#[cfg(test)]
+pub async fn init_test_db() -> Pool<Postgres> {
+    let pool = init_db().await.unwrap();
+
+    let pool_ref = &pool;
+
+    sqlx::query(
+        "INSERT INTO users (username, password) VALUES ($1, $2) ON CONFLICT (username) DO NOTHING",
+    )
+    .bind("test_user")
+    .bind("test_password")
+    .execute(pool_ref)
+    .await
+    .unwrap();
+
+    pool
+}
+#[cfg(test)]
+use crate::structs::User;
+
+#[cfg(test)]
+pub async fn get_test_user(pool: &Pool<Postgres>) -> User {
+    sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = $1")
+        .bind("test_user")
+        .fetch_one(pool)
+        .await
+        .unwrap()
+}
