@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**nurl** is a URL shortener service built with Rust (Backend) and React (Frontend). It was developed as a final project for a Computer Science class at the University of Arizona in under 24 hours. It provides a simple way to shorten URLs and track their usage.
+**nurl** (short for Nano URL) is a URL shortener service built with Rust (Backend) and React (Frontend). It was developed as a final project for a Computer Science class at the University of Arizona in under 24 hours. It provides a simple way to shorten URLs and track their usage.
 
 > **Note:** nurl is **not production-ready**. Authentication needs further development, as currently, anyone can register and create unlimited shortened URLs. This project is intended for educational purposes only.
 
@@ -91,7 +91,7 @@ docker compose -f docker-compose.dev.yaml up
 
 ### Running the Application
 
-Ensure that all three services (frontend, backend, database) are up. To access the application, simply go to `http://localhost:5173` in your web browser. Do not go to `http://localhost:8080` directly, as the frontend is responsible for routing and serving the application.
+Ensure that all three services (frontend, backend, database) are up. To access the application, simply go to `http://localhost:5173` in your web browser. Do not go to `http://localhost:8080` directly, as the frontend is responsible for routing and serving the application. To serve in one port, look into building the docker image which will contain both the backend and frontend in one package.
 
 ## Deployment
 
@@ -115,10 +115,6 @@ docker compose -f docker-compose.prod.yaml up
 
 This command will start both the frontend and backend services in detached mode (add `-d` for background execution). The application should be accessible via the port configured in your `docker-compose.prod.yaml` (often port 80 or another specified port for the web server/proxy).
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details (Optional: Create a LICENSE.md file).
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
